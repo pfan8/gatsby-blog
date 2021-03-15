@@ -84,6 +84,25 @@ class Tags extends React.Component {
     }
   }
 
+  renderTag = tags => {
+    const { selectTag, selectedTag } = this.props
+    const keys = Object.keys(tags).filter(key => key !== "id")
+    if (keys.length === 0) {
+      return null
+    }
+    return keys.map(key => (
+      <div className="tag-list">
+        <Tag
+          title={key}
+          tagNode={tags[key]}
+          selectTag={selectTag}
+          selectedTag={selectedTag}
+        />
+        {this.renderTag(tags[key])}
+      </div>
+    ))
+  }
+
   render() {
     const { tags, selectTag, selectedTag } = this.props
     const childrenElement = (
@@ -92,23 +111,13 @@ class Tags extends React.Component {
           <StyledFA className="icon-hand-ptr" icon={faHandPointer} />
         )}
         {/* Used to apply overflow to work with sticky */}
-        <div className="tag-list-inner">
-          <Tag
-            title={TAG.ALL}
-            selectTag={selectTag}
-            selectedTag={selectedTag}
-          />
-          {tags.map((tag, i) => {
-            return (
-              <Tag
-                key={i}
-                title={tag}
-                selectTag={selectTag}
-                selectedTag={selectedTag}
-              />
-            )
-          })}
-        </div>
+        <Tag
+          title={TAG.ALL}
+          tagNode={{ id: TAG.ALL }}
+          selectTag={selectTag}
+          selectedTag={selectedTag}
+        />
+        {this.renderTag(tags)}
       </div>
     )
 
@@ -136,7 +145,7 @@ const StyledTagsVertical = styled.div`
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    padding: 0.5rem;
+    padding: 0 0.8rem;
     &-inner {
       width: 120px;
       overflow-x: auto;

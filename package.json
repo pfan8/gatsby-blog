@@ -51,7 +51,8 @@
     "react-live": "^2.2.2",
     "react-share": "^4.0.1",
     "react-switch": "^5.0.1",
-    "styled-components": "^5.0.1"
+    "styled-components": "^5.0.1",
+    "uuid": "^3.4.0"
   },
   "devDependencies": {
     "prettier": "^1.19.1"

@@ -3,16 +3,22 @@ import styled from "styled-components"
 import { theme } from "../../Shared/styles-global"
 import { isMobile } from "react-device-detect"
 
-const Tag = ({ title, selectTag, selectedTag, unmountTagsAnimation }) => {
+const Tag = ({
+  title,
+  tagNode,
+  selectTag,
+  selectedTag,
+  unmountTagsAnimation,
+}) => {
   const handleClick = () => {
-    selectTag(title)
+    selectTag(tagNode.id)
   }
 
   return !isMobile ? (
     <StyledTagVertical
       className="tag-vertical"
       onClick={handleClick}
-      selected={selectedTag === title}
+      selected={selectedTag === tagNode}
     >
       {title}
     </StyledTagVertical>
@@ -20,7 +26,7 @@ const Tag = ({ title, selectTag, selectedTag, unmountTagsAnimation }) => {
     <StyledTagHorizontal
       className="tag-horizontal"
       onClick={handleClick}
-      selected={selectedTag === title}
+      selected={selectedTag === tagNode}
     >
       {title}
     </StyledTagHorizontal>
@@ -32,7 +38,7 @@ export default Tag
 const StyledTagVertical = styled.div`
   cursor: pointer;
   padding: 0.07rem 0;
-  margin: 0.6rem 0;
+  margin: 0.2rem 0;
   padding-left: 0.5rem;
   border-left-width: 3px;
   border-left-style: solid;
