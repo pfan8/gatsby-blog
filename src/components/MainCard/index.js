@@ -8,7 +8,6 @@ import ToggleMode from "../Layout/ToggleMode"
 import { isMobile } from "react-device-detect"
 import { TAG } from "../../constants"
 import _ from "lodash"
-import { v4 as uuidv4 } from "uuid"
 
 const isInTags = (tags, selectedTag) => {
   if (!tags?.id) return false
@@ -222,7 +221,7 @@ if (!isMobile) {
     position: relative;
     display: grid;
     grid-template-columns: 0.25fr auto;
-    padding: 0.5rem 1.5rem 1.5rem 1.5rem;
+    padding: 0.5rem 1.5rem 1.5rem 0;
 
     @media (max-width: 500px) {
       padding: 0rem 1rem 1rem 1rem;

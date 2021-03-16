@@ -1,4 +1,5 @@
 const config = require("./customize")
+const remarkMath = require(`remark-math`)
 const rss = require("./gatsby-rss")
 
 module.exports = {
@@ -71,6 +72,7 @@ module.exports = {
             },
           },
         ],
+        remarkPlugins: [remarkMath],
       },
     },
 
@@ -104,6 +106,13 @@ module.exports = {
       options: {
         plugins: [
           // Somehow need to be defined under both gatsby-plugin-mdx & gatsby-transformer-remark to work
+          {
+            resolve: `gatsby-remark-katex`,
+            options: {
+              // Add any KaTeX options from https://github.com/KaTeX/KaTeX/blob/master/docs/options.md here
+              strict: `ignore`,
+            },
+          },
           {
             resolve: `gatsby-remark-autolink-headers`,
             options: {
