@@ -4,4 +4,4 @@ node_js:
 branches:
   only:
   - main
-script: npm run start
+script: npm run deploy
