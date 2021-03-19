@@ -13,7 +13,7 @@ const Tag = ({
 }) => {
   const handleClick = () => {
     selectTag(tagNode.id)
-    selectCleanWork(tagNode.id)
+    selectCleanWork(tagNode.id, Object.keys(tagNode).length)
   }
 
   return !isMobile ? (
@@ -38,6 +38,7 @@ const Tag = ({
 export default Tag
 
 const StyledTagVertical = styled.div`
+  height: 25px;
   cursor: pointer;
   padding: 0.07rem 0;
   margin: 0.2rem 0;
@@ -48,6 +49,7 @@ const StyledTagVertical = styled.div`
     props.selected ? `${theme.mintColor}` : "transparent"};
   font-weight: ${props => (props.selected ? "bold" : "400")};
   position: sticky;
+  overflow: hidden;
   transition: none;
 `
 

@@ -101,7 +101,7 @@ class Tags extends React.Component {
         />
         <ScrollContainer
           id={`tags-scroll-container-${tags[key].id}`}
-          style={{ display: "none" }}
+          style={{ maxHeight: 0 }}
         >
           {this.renderTag(tags[key])}
         </ScrollContainer>
@@ -109,16 +109,16 @@ class Tags extends React.Component {
     ))
   }
 
-  cleanWork = id => {
+  cleanWork = (id, length) => {
     // toggle the children div
     if (id === TAG.ALL) return
     const childDiv = document.getElementById(`tags-scroll-container-${id}`)
     if (childDiv) {
-      const prevDisplay = childDiv.style.display
-      if (!prevDisplay || prevDisplay === "flex") {
-        childDiv.style.display = "none"
+      const prevMaxHeight = childDiv.style.maxHeight
+      if (prevMaxHeight === "0px") {
+        childDiv.style.maxHeight = `${length * 40}px`
       } else {
-        childDiv.style.display = "flex"
+        childDiv.style.maxHeight = "0px"
       }
     }
   }
@@ -126,7 +126,11 @@ class Tags extends React.Component {
   render() {
     const { tags, selectTag, selectedTag } = this.props
     const childrenElement = (
-      <div className="tag-list" onScroll={this.handleScrollX}>
+      <div
+        className="tag-list"
+        onScroll={this.handleScrollX}
+        style={{ top: 50 }}
+      >
         {isMobile && this.state.showSwipeIcon && (
           <StyledFA className="icon-hand-ptr" icon={faHandPointer} />
         )}
@@ -140,7 +144,7 @@ class Tags extends React.Component {
         />
         <ScrollContainer
           id={`tags-scroll-container-${TAG.ALL}`}
-          style={{ display: "flex" }}
+          style={{ maxHeight: "100%" }}
         >
           {this.renderTag(tags)}
         </ScrollContainer>
@@ -165,13 +169,14 @@ const StyledTagsVertical = styled.div`
   margin-top: 0.5rem;
   background: none !important;
   .tag-list {
+    // top: 50px;
     position: sticky;
-    top: 50px;
     z-index: 1;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     padding: 0 0.8rem;
+    overflow: hidden;
     &-inner {
       width: 120px;
       overflow-x: auto;
@@ -185,6 +190,14 @@ const StyledTagsVertical = styled.div`
       }
     }
   }
+`
+
+const ScrollContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  transition: max-height 0.3s ease-in-out;
+  max-height: 0;
+  // overflow: hidden;
 `
 
 const StyledTagsHorizontal = styled.div`
@@ -213,11 +226,6 @@ const StyledTagsHorizontal = styled.div`
       }
     }
   }
-`
-
-const ScrollContainer = styled.div`
-  display: flex;
-  flex-direction: column;
 `
 
 const swipeLeft = keyframes`
