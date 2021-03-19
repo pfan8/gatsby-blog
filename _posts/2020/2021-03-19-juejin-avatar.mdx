@@ -1,0 +1,98 @@
+---
+title: 掘进头像旋转
+date: 2021-03-19
+tags: [CSS-transform]
+excerpt: Juejin avatar
+---
+
+<Info>
+
+今天在掘进上处理自己的账号，将微信号上的关注账号的列表迁移到手机号上，结果发现一个很有意思的现象：当鼠标移动到用户头像上时，头像会旋转，而且越转越快，最后还会停下，非常神奇。在好奇心的驱使下对其进行了研究，最终发现了实现原理，再次感叹 transform 大法好！
+
+</Info>
+
+<Primary>
+
+下面来详细分析 CSS：
+
+```css
+.user-info-block .avatar[data-v-4460ef68] {
+    flex: 0 0 auto;
+    margin-right: 2.4rem;
+    width: 7.5rem;
+    height: 7.5rem;
+    background-color: #f9f9f9;
+    border-radius: 50%
+}
+
+.user-info-block .avatar[data-v-4460ef68]:hover {
+    transform: rotate(666turn);
+    transition-delay: 1s;
+    transition-property: all;
+    transition-duration: 59s;
+    transition-timing-function: cubic-bezier(.34, 0, .84, 1)
+}
+```
+
+先顺带一提，这里使用的attribute selector: `data-v-4460ef68`，挺 tricky
+
+其实实现原理就是利用 tranform 的 rorate，加上 transition 的一些属性：
+
++ transform: rotate(666turn); 常见的用来旋转元素角度的css，这里用到的是turn，1turn = 360°
++ transition-property: all; 这个属性是指明效果变换的位置，比如width，height等，all是所有属性。
++ transition-duration: 59s; 过渡效果的持续时间。
++ transition-timing-function: cubic-bezier(.34,0,.84,1); 过渡效果的速度曲线 四个值的范围都是0-1 代表整个过程。
++ transition-delay：1s; 这个属性的作用就是效果执行前的等待时间
+后四个属性可以简写为transition: all 59s cubic-bezier(.34,0,.84,1) 1s; 顺序为transition-property，transition-duration，transition-timing-function 和 transition-delay
+
+说一下 timing-function，这里他使用的是`cubic-bezier`，cubic-bezier 又称三次贝塞尔，主要是为 animation 生成速度曲线的函数，规定是 cubic-bezier(x1, y1, x2, y2)。
+
+我们可以从下图中简要理解一下 cubic-bezier：
+
+![](https://upload-images.jianshu.io/upload_images/741039-4016cb02499bb127.jpg)
+
+从上图我们需要知道的是 cubic-bezier 的取值范围:
+
+P0：默认值 (0, 0)
+**P1：动态取值 (x1, y1)**
+**P2：动态取值 (x2, y2)**
+P3：默认值 (1, 1)
+我们需要关注的是 P1 和 P2 两点的取值，而其中 X 轴的取值范围是 0 到 1，当取值超出范围时 cubic-bezier 将失效；Y 轴的取值没有规定，当然也毋须过大。
+
+最直接的理解是，将以一条直线放在范围只有 1 的坐标轴中，并从中间拿出两个点来拉扯（X 轴的取值区间是 [0, 1]，Y 轴任意），最后形成的曲线就是动画的速度曲线。
+
+在现代浏览器中（例如 Chrome），你甚至可以在页面上利用 devtools 直接拖动 cubic-bezier 的节点，在浏览器中直接尝试不同的过渡效果
+
+![](https://thumbsnap.com/i/TPPXjymJ.jpg?0319)
+
+</Primary>
+
+<Success>
+
+几个常见的`cubic-bezier`
+
+1. `ease`：cubic-bezier(.25, .1, .25, 1)
+
+![](https://upload-images.jianshu.io/upload_images/741039-0b39ead91c56336a.png)
+
+2. `liner`： cubic-bezier(0, 0, 1, 1) / cubic-bezier(1, 1, 0, 0)
+
+![](https://upload-images.jianshu.io/upload_images/741039-122c3034edee633a.png)
+
+3. `ease-in`：cubic-bezier(.42, 0, 1, 1)
+
+![](https://upload-images.jianshu.io/upload_images/741039-ed0d33c50459a794.png)
+
+4. `ease-out`：cubic-bezier(0, 0, .58, 1)
+
+![](https://upload-images.jianshu.io/upload_images/741039-4a4e124f43dbb7e8.png)
+
+5. `ease-in-out`：cubic-bezier(.42, 0, .58, 1)
+
+![](https://upload-images.jianshu.io/upload_images/741039-5477bd72ef8cc2d0.png)
+
+In Out . Back（来回的缓冲效果）：cubic-bezier(0.68, -0.55, 0.27, 1.55)
+
+![](https://upload-images.jianshu.io/upload_images/741039-6cedf3a50d37a702.png)
+
+</Success>
