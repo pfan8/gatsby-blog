@@ -8,10 +8,12 @@ const Tag = ({
   tagNode,
   selectTag,
   selectedTag,
+  selectCleanWork,
   unmountTagsAnimation,
 }) => {
   const handleClick = () => {
     selectTag(tagNode.id)
+    selectCleanWork(tagNode.id)
   }
 
   return !isMobile ? (

@@ -97,10 +97,30 @@ class Tags extends React.Component {
           tagNode={tags[key]}
           selectTag={selectTag}
           selectedTag={selectedTag}
+          selectCleanWork={this.cleanWork}
         />
-        {this.renderTag(tags[key])}
+        <ScrollContainer
+          id={`tags-scroll-container-${tags[key].id}`}
+          style={{ display: "none" }}
+        >
+          {this.renderTag(tags[key])}
+        </ScrollContainer>
       </div>
     ))
+  }
+
+  cleanWork = id => {
+    // toggle the children div
+    if (id === TAG.ALL) return
+    const childDiv = document.getElementById(`tags-scroll-container-${id}`)
+    if (childDiv) {
+      const prevDisplay = childDiv.style.display
+      if (!prevDisplay || prevDisplay === "flex") {
+        childDiv.style.display = "none"
+      } else {
+        childDiv.style.display = "flex"
+      }
+    }
   }
 
   render() {
@@ -116,8 +136,14 @@ class Tags extends React.Component {
           tagNode={{ id: TAG.ALL }}
           selectTag={selectTag}
           selectedTag={selectedTag}
+          selectCleanWork={this.cleanWork}
         />
-        {this.renderTag(tags)}
+        <ScrollContainer
+          id={`tags-scroll-container-${TAG.ALL}`}
+          style={{ display: "flex" }}
+        >
+          {this.renderTag(tags)}
+        </ScrollContainer>
       </div>
     )
 
@@ -188,6 +214,12 @@ const StyledTagsHorizontal = styled.div`
     }
   }
 `
+
+const ScrollContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+`
+
 const swipeLeft = keyframes`
   0% {
     opacity: 1;
