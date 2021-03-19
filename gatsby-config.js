@@ -54,7 +54,7 @@ module.exports = {
             options: {
               maxWidth: config.maxWidth,
               backgroundColor: `transparent`,
-              linkImagesToOriginal: false,
+              linkImagesToOriginal: true,
             },
           },
 
@@ -126,7 +126,7 @@ module.exports = {
             options: {
               maxWidth: config.maxWidth,
               backgroundColor: `transparent`,
-              linkImagesToOriginal: false,
+              linkImagesToOriginal: true,
             },
           },
         ],

@@ -14,13 +14,36 @@ tags:	[CSS-Layout, CSS-Responsive]							#标签
 
 1. relative：该模式会影响周围的DOM，可以通过top、buttom、left、right调整offset，下图很形象
 
-   ![](https://cdn-media-1.freecodecamp.org/imgr/eWWi3gZ.gif)
+![](https://cdn-media-1.freecodecamp.org/imgr/eWWi3gZ.gif)
 
 2. absolute：不同于relative，absolute会锁定当前DOM在父容器的相对位置，这个父容器是最近的position为relative的DOM，会一直向上查找，直到body。同样通过top、buttom、left、right调整offset
 
 3. fixed：也是绝对定位，但是fixed是相对浏览器窗口（browser window），而absolute是相对父容器
 
 4. float：float不采用position属性定义，本身通过`float: left`或者`float: right`定义，float的元素将离开当前document的flow而采用left和right排列在它所在的父容器中
+
+5. sticky: （更新于 2021-03-19）sticky 意思是粘性的，DOM 元素行为也很形象，就是当元素在屏幕内时，表现为 relative，如果拖动滚动条即将脱离屏幕时，元素将变为浮动的 fixed。总而言之，可以将 sticky 当做 position:relative 和 position:fixed 的结合，在屏幕中和屏幕外的不同条件下分别对应不同的属性。
+
+sticky 关键字并不常见，在 caniuse 上搜索 position:sticky，可以看到 Chrome 在 26-31 版本支持选择使用（not used by default, but enable），然后在 37-51 版本放弃支持，后来又恢复了支持。由此可见sticky 属性也是颇具争议的，为什么呢？我今天在优化个人博客网站的时候算是体会到了。这里对 sticky 稍微多做些叙述
+
+![](https://image.zhangxinxu.com/image/blog/201812/2018-12-01_004224.png)
+
+我们看看实际效果，在 tag 列表上，这个 div 用了 sticky 的属性，所以Tag一开始的时候会随着滑动条向下滚动而跟着滚动，直到 Tag “粘”到了屏幕顶部，就会 fixed，从而不再滚动，变为浮动，效果上还是挺 cool 的
+
+![](https://thumbsnap.com/i/V3XejcN8.mp4)
+
+但是看这个操作最后，你可以发现 sticky 也有缺点，就是在一些情景下会导致元素混乱，比如我 Tag 过长，所以在屏幕整个 height 不够存放 Tag 时，就会重叠文字，所以使用 sticky 时也要注意，不能随意使用，有些场景会导致处理麻烦，尤其在 sticky 的元素会在网页顶层浮动的时候
+
+最后我们到[MDN](https://developer.mozilla.org/zh-CN/docs/Web/CSS/position)查看官方说法:
+
+    元素根据正常文档流进行定位，然后相对它的最近滚动祖先（nearest scrolling ancestor）和 containing block (最近块级祖先 nearest block-level ancestor)，包括table-related元素，基于top, right, bottom, 和 left的值进行偏移。偏移值不会影响任何其他元素的位置。
+    该值总是创建一个新的层叠上下文（stacking context）。注意，一个sticky元素会“固定”在离它最近的一个拥有“滚动机制”的祖先上（当该祖先的overflow 是 hidden, scroll, auto, 或 overlay时），即便这个祖先不是最近的真实可滚动祖先。这有效地抑制了任何“sticky”行为（详情见Github issue on W3C CSSWG）。
+
+因此，有几条实用性的建议：
+
+1. 父级元素不能有任何`overflow:visible`以外的overflow设置，否则没有粘滞效果。因为改变了滚动容器（即使没有出现滚动条）。因此，如果你的`position:sticky`无效，看看是不是某一个祖先元素设置了`overflow:hidden`，移除之即可。
+2. 同一个父容器中的sticky元素，如果定位值相等，则会重叠；如果属于不同父元素，且这些父元素正好紧密相连，则会鸠占鹊巢，挤开原来的元素，形成依次占位的效果。（上面博客的 Tag 重叠）
+3. sticky定位，不仅可以设置top，基于滚动容器上边缘定位；还可以设置bottom，也就是相对底部粘滞。如果是水平滚动，也可以设置left和right值。
 
 ## CSS3: display属性
 
@@ -129,6 +152,7 @@ Grid可以让容器内元素按指定格子（grid）分布，元素的排列顺
 + `grid-gap`: 指定row和column之间的gap，例如`10px 20px`，前面是row，后面是column
 
 + `grid-column`: 指定grid元素占用的column line， 关于`line`的解释如下
+    
     ![](https://i.ibb.co/bJQyz8d/Wechat-IMG1.png)
 
     例如指定`grid-column: 2/3`则表示从`line 2`开始，到`line 3`结束
