@@ -9,7 +9,12 @@ import Success from "../../../../_assets/icons/success.svg"
 import Info from "../../../../_assets/icons/info.svg"
 import Stop from "../../../../_assets/icons/stop.svg"
 
-const TextBlock = ({ theme, children, padding = "2rem 1.5rem" }) => {
+const TextBlock = ({
+  theme,
+  children,
+  padding = "2rem 1.5rem",
+  title = "",
+}) => {
   let iconElement
 
   switch (theme) {
@@ -30,6 +35,7 @@ const TextBlock = ({ theme, children, padding = "2rem 1.5rem" }) => {
   return (
     <StyledTextBlock theme={theme} padding={padding}>
       <StyledIconWrap theme={theme}>{iconElement}</StyledIconWrap>
+      {title && <StyledTitle theme={theme}>{title}</StyledTitle>}
       {children}
     </StyledTextBlock>
   )
@@ -96,4 +102,15 @@ const StyledIconWrap = styled.div`
     /* Theme */
     fill: ${props => color[props.theme]};
   }
+`
+
+const StyledTitle = styled.h2`
+  position: absolute;
+  margin: 0 !important;
+  top: -1.2rem;
+  left: 2rem;
+  /* Default */
+  color: ${() => setThemeVars("#666", theme.fontColorDark)};
+  /* Theme */
+  color: ${props => color[props.theme]};
 `

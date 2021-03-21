@@ -1,8 +1,8 @@
 import React from "react"
 import TextBlock from "../index"
 
-const Info = ({ children, padding }) => {
-  return <TextBlock theme="info" children={children} padding={padding} />
+const Info = props => {
+  return <TextBlock theme="info" {...props} />
 }
 
 export default Info
