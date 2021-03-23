@@ -79,7 +79,7 @@ module.exports = {
             },
           },
         ],
-        remarkPlugins: [remarkMath],
+        remarkPlugins: [remarkMath, require('remark-html-katex')],
       },
     },
 
@@ -107,37 +107,6 @@ module.exports = {
     //     trackingId: config.gaTrackingId,
     //   },
     // },
-
-    {
-      resolve: `gatsby-transformer-remark`,
-      options: {
-        plugins: [
-          // Somehow need to be defined under both gatsby-plugin-mdx & gatsby-transformer-remark to work
-          {
-            resolve: `gatsby-remark-katex`,
-            options: {
-              // Add any KaTeX options from https://github.com/KaTeX/KaTeX/blob/master/docs/options.md here
-              strict: `ignore`,
-            },
-          },
-          {
-            resolve: `gatsby-remark-autolink-headers`,
-            options: {
-              className: `anchor-heading`,
-            },
-          },
-
-          {
-            resolve: `gatsby-remark-images`,
-            options: {
-              maxWidth: config.maxWidth,
-              backgroundColor: `transparent`,
-              linkImagesToOriginal: true,
-            },
-          },
-        ],
-      },
-    },
 
     {
       resolve: `gatsby-plugin-manifest`,

@@ -54,6 +54,7 @@
     "react-live": "^2.2.3",
     "react-share": "^4.4.0",
     "react-switch": "^6.0.0",
+    "remark-html-katex": "^3.0.0",
     "sharp": "^0.27.2",
     "styled-components": "^5.2.1",
     "uuid": "^8.3.2"

@@ -20,7 +20,7 @@ const PostCard = ({ id, title, date, path, excerpt, timeToRead }) => {
                 icon={faClock}
                 size="xs"
               />
-              {timeToRead} minute read
+              {timeToRead * 10} minute read
             </span>
           )}
           <p>{excerpt}</p>

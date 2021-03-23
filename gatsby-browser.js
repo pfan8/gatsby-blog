@@ -1,5 +1,6 @@
 import { wrapRootElement as wrap } from "./src/components/Code/wrap-root-element"
 import "katex/dist/katex.min.css"
+import "./_assets/css/_override.scss"
 import Prism from "prism-react-renderer/prism"
 ;(typeof global !== "undefined" ? global : window).Prism = Prism
 
