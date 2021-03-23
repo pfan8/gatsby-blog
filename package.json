@@ -1,10 +1,10 @@
 {
-  "name": "gatsby-blog-mdx",
+  "name": "pfan-blog",
   "author": "Ellis Min <ellismin.dev@gmail.com>",
   "license": "MIT",
   "private": true,
   "description": "A simple starter for blog posts built with Gatsby js",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.35",
     "@fortawesome/free-brands-svg-icons": "^5.15.3",
