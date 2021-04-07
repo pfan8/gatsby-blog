@@ -13,7 +13,7 @@ const isInTags = (tags, selectedTag) => {
   if (!tags?.id) return false
   return (
     tags.id === selectedTag ||
-    Object.values(tags).some(tag => isInTags(tag, selectedTag))
+    Object.values(tags).some((tag) => isInTags(tag, selectedTag))
   )
 }
 
@@ -31,10 +31,10 @@ class MainCard extends Component {
      * output: {"a":{"b": {{"d":{}}, {"c":{}}}}}
      */
     this.props.posts
-      .filter(post => Array.isArray(post.node.frontmatter.tags))
-      .forEach(post => {
+      .filter((post) => Array.isArray(post.node.frontmatter.tags))
+      .forEach((post) => {
         const newTags = {}
-        post.node.frontmatter.tags.forEach(tag => {
+        post.node.frontmatter.tags.forEach((tag) => {
           let key = tag
           if (tag.includes("\\-")) {
             key = tag.replaceAll("\\-", "-")
@@ -54,9 +54,9 @@ class MainCard extends Component {
         })
         const genId = (obj, prefix = ">") => {
           obj.id = prefix
-          const keys = Object.keys(obj).filter(key => key !== "id")
+          const keys = Object.keys(obj).filter((key) => key !== "id")
           if (keys.length === 0) return
-          keys.forEach(key => {
+          keys.forEach((key) => {
             genId(obj[key], prefix + key + ">")
           })
         }
@@ -81,7 +81,7 @@ class MainCard extends Component {
   }
 
   // Check if tag in storage exists
-  checkTag = storageTag => {
+  checkTag = (storageTag) => {
     // Input checks
     if (!storageTag) {
       return false
@@ -106,11 +106,11 @@ class MainCard extends Component {
     let sortedTags = {}
     // Exclude about page & dummy page
     const filteredPosts = posts.filter(
-      post =>
+      (post) =>
         post.node.fields.slug !== "/about/" &&
         post.node.fields.slug !== "/__do-not-remove/"
     )
-    filteredPosts.forEach(post => {
+    filteredPosts.forEach((post) => {
       let tags = post.node.frontmatter.tags
 
       if (!tags) {
@@ -148,7 +148,7 @@ class MainCard extends Component {
     this.setState({ filteredPosts: filtered })
   }
 
-  handleSelectTag = async tag => {
+  handleSelectTag = async (tag) => {
     // Save current tag in storage
     sessionStorage.setItem("curTag", tag)
     await this.setState({ selectedTag: tag })

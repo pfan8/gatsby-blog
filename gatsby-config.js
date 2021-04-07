@@ -126,5 +126,12 @@ module.exports = {
         path: `${__dirname}/src/z_`,
       },
     },
+    {
+      resolve: "@sentry/gatsby",
+      options: {
+        dsn: "https://3c4e4380e42743098667bf3e22afa54d@o559656.ingest.sentry.io/5694695",
+        sampleRate: 0.7,
+      },
+    },
   ],
 }

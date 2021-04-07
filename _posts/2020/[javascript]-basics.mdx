@@ -82,7 +82,6 @@ Number(undefined) // NaN
 ```
 上面公式是正常情况下（指数部分在0到2047之间），一个数在 JavaScript 内部实际的表示形式。
 
-
 下面有SOF一个答案里更为详细的描述：
 
 >   1. JavaScript uses `double` (IEEE 754) to represent all numbers
@@ -92,8 +91,9 @@ Number(undefined) // NaN
     5. After we get exponent we can scale number to zero exponent without changing mantissa, `value = value / Math.pow(2, Math.floor(Math.log2(666.0)))`, now value represents number `(-1)^sign * (1.mantissa)`. If we ignore sign and multiply that by 2^52 we get integer value that have same bits as 1.mantissa: `((666 / Math.pow(2, Math.floor(Math.log2(666)))) * Math.pow(2, 52)).toString(2) = "10100110100000000000000000000000000000000000000000000"` (we must ignore leading 1).
     6. After some string concat's you will get what you want
 
-
 精度最多只能到53个二进制位，这意味着，绝对值小于2的53次方的整数，即$-2^{53}$到$2^{53}$，都可以精确表示。
+
+关于 IEEE 754 的详细内容，可以查看[这篇](http://c.biancheng.net/view/314.html)
 
 ```js
 Math.pow(2, 53)
