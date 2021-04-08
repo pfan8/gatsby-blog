@@ -11,6 +11,8 @@ import { comments } from "../../../../customize"
 import configStyles from "../../../../customize-styles"
 import Layout from "../../Layout"
 import Hr from "../../Hr"
+import Code from "../../Code"
+import { preToCodeBlock } from "mdx-utils"
 import Profile from "../../Profile"
 import SEO from "../../SEO"
 import {
@@ -64,7 +66,7 @@ class PostTemplate extends React.Component {
     }
   }
 
-  registerUtterancesComments = repo => {
+  registerUtterancesComments = (repo) => {
     // Register utterances if it exists
     if (this.utterancesRef.current) {
       const script = document.createElement("script")
@@ -94,7 +96,7 @@ class PostTemplate extends React.Component {
     // Set as state to unmount script
     this.setState({ script: script })
     document.body.appendChild(script)
-    window.fbAsyncInit = function() {
+    window.fbAsyncInit = function () {
       window.FB.init({
         appId: comments.facebook.appId,
         autoLogAppEvents: true,
@@ -159,7 +161,7 @@ class PostTemplate extends React.Component {
   moveAnchorHeadings = () => {
     const target = ".anchor-heading"
     const anchors = Array.from(document.querySelectorAll(target))
-    anchors.forEach(anchor => {
+    anchors.forEach((anchor) => {
       anchor.parentNode.appendChild(anchor)
       anchor.classList.add("after")
       anchor.classList.remove("before")
@@ -167,10 +169,10 @@ class PostTemplate extends React.Component {
   }
 
   // Toggle loading for changing copy texts
-  toggleLoading = text => {
-    this.setState(prevState => {
+  toggleLoading = (text) => {
+    this.setState((prevState) => {
       const updatedTexts = [...prevState.texts]
-      updatedTexts.forEach(t => {
+      updatedTexts.forEach((t) => {
         if (t.id === text.id) {
           t.loadingChange = !t.loadingChange
         }
@@ -205,6 +207,16 @@ class PostTemplate extends React.Component {
         )
       },
       hr: () => <Hr widthInPercent="100" verticalMargin="0.8rem" />,
+      pre: (props) => {
+        console.log("pre here")
+        const preProps = preToCodeBlock(props)
+        if (preProps) {
+          return <Code {...preProps} />
+        } else {
+          return <pre {...props} />
+        }
+      },
+      code: (props) => <pre style={{ color: "tomato" }} {...props} />,
       // Use the below components without having to import in *.mdx
       Primary,
       Danger,

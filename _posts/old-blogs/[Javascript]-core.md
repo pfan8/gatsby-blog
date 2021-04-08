@@ -7,7 +7,7 @@ update_date: 2020-10-20  			# 更新时间
 author:     pfan8 						# 作者
 header-img: img/post-bg-github-cup.jpg 	#这篇文章标题背景图片
 catalog: true 						# 是否归档
-tags:	[Javascript]							#标签
+tags:	[JavaScript]							#标签
 ---
 
 ## 1.变量提升

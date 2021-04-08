@@ -1,0 +1,416 @@
+---
+title: TypeScript 知识点总结
+date: 2021-04-08
+tags: [TypeScript]
+excerpt: TS介绍，编译器，基本数据类型，接口，泛型，高级用法...
+---
+
+<Info title="前言">
+
+### TypeScript for Tooling
+
+TypeScript 除了能够发现我们 ts code 中的 bug，还可以在你编辑的时候就帮助你更好地避免产生这些 bug，也就是说在 IDE 中能帮助我们 coding，包括函数调用提示面板，自动修复提示（quick fixes），直接跳转到接口定义等等。这些功能都是通过 type-check 实现的，而以下这些主流 IDE 都对 TS 有良好的支持，并且是跨平台的：
+
+- [alm.tools](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support#alm)
+- [Atom](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support#atom)
+- [CATS](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support#cats)
+- [Eclipse](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support#eclipse)
+- [Emacs](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support#emacs)
+- [NeoVim](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support#neovim)
+- [NetBeans](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support#netbeans)
+- [Notepad++](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support#notepad)
+- [Sublime Text](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support#sublime-text)
+- [Vim](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support#vim)
+- [Visual Studio](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support#visual-studio-20132015)
+- [Visual Studio Code](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support#visual-studio-code)
+- [WebStorm](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support#webstorm)
+
+详细可以查看[官方文档](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support)
+
+### the TypeScript compiler
+
+主流的 TS 编译器工具有 3 个：
+
+- tsc：TS 官方的编译器，作为 type-checker，只有 tsc 可以做 type-checking，代价就是耗时，同时其编译参数也是最丰富的。
+- ts-node：相当于是一个 node 的可执行环境，并且包含 TS 支持的模块可以运行过程中编译 TS，实际使用中就相当于可以直接执行 ts 文件而不用输出 js，另外，ts-node 可以指定 TS 编译器，默认是用 tsc
+- babel + ts-plugin：babel 有自己的 TS 转换插件 `@babel/plugin-transform-typescript`，但是这个插件相比 tsc 少了一些功能：它没有 type-checking，并且只会转换单个文件，导致其无法理解整个项目的类型系统，如果指定 ts-config 的 `isolatedModules `可以告诉 TS 如果有一些文件无法用 babel 这样的单文件转换工具进行正确地解释，就进行 warn 提示
+
+除此之外，还有 `swc` 以及 `Sucrase` 等是可兼容 TS 的转换器（注意，是 transpiler，而不是 compiler，只有 tsc 是 compiler）
+
+#### 关于 TS 中的 Errors
+
+如果在 ts 文件中有错误，用 `tsc` 编译时默认依然会输出 js 文件，甚至有可能你能成功运行该 js 文件，但是行为不符合预期，例如：
+
+```typescript
+// This is an industrial-grade general-purpose greeter function:
+function greet(person, date) {
+  console.log(`Hello ${person}, today is ${date}!`)
+}
+
+greet("Brendan")
+```
+
+`tsc` 之后你可以得到：
+
+```javascript
+// This is an industrial-grade general-purpose greeter function:
+function greet(person, date) {
+  console.log("Hello " + person + ", today is " + date + "!")
+}
+greet("Brendan")
+```
+
+甚至你运行可以看到结果
+
+```
+Hello Brendan, today is undefined!
+```
+
+但是 undefined 多半不是我们的预期结果
+
+如果想要让 `tsc` 在编译时不 skip error，一旦有错就不生成 js 文件的话，可以添加 `--noEmitOnError`参数，例如上述文件（假设为 `ts_study.ts`），运行
+
+```shell
+❯ tsc --noEmitOnError ts_study.ts
+ts_study.ts:17:1 - error TS2554: Expected 2 arguments, but got 1.
+
+17 greet("Brendan");
+   ~~~~~~~~~~~~~~~~
+
+  ts_study.ts:13:24
+    13 function greet(person, date) {
+                              ~~~~
+    An argument for 'date' was not provided.
+
+
+Found 1 error.
+```
+
+就会提示报错，并且不生成对应的 js 文件
+
+</Info>
+
+<Primary title="1. 基础类型">
+
+以下左边对应 JavaScript，右边是 TypeScript
+
+- Boolean：boolean
+- Number：number
+- String：string
+- 空值：void（ TS 中的 void 并不是 JS 中的 void ）
+- Null：null
+- Undefined：undefined
+- Symbol：symbol
+- BigInt：bigint
+
+可以看出基本上 TS 中的基本类型就是讲 JS 中的各种基本类型的原型名改为小写
+
+需要注意，void 在 JS 中是一个操作符，表示后面的`function`或者`expression`总是返回 undefined，例如：
+
+```javascript
+let i = void 2 // i === undefined
+
+void (function aRecursion(i) {
+  if (i > 0) {
+    console.log(i--)
+    aRecursion(i)
+  }
+})(3)
+
+console.log(typeof aRecursion) // undefined
+```
+
+至于好处就是，如果你的 app 里某个接口要求必须返回 undefined 或者在异常时只接受 undefined 的结果，其他结果会报错，那么用 void 可以保证 app 不会 crash：
+
+```javascript
+// returning something else than undefined would crash the app
+function middleware(nextCallback) {
+  if (conditionApplies()) {
+    return void nextCallback()
+  }
+}
+// or
+button.onclick = () => void doSomething()
+```
+
+而 TS 中的 void 是一种类型，相当于 undefined 的一个子类，表示函数不返回值，而在 js 里如果函数没有显示调用 return，则默认返回 undefined 作为函数返回值。然而需要注意，TS 中，void 不等同于 undefined，TS 官网对 `void` 的定义：
+
+> `void` represents the return value of functions which don’t return a value. It’s the inferred type any time a function doesn’t have any `return` statements, or doesn’t return any explicit value from those return statements:
+
+注意最后一句话 `or doesn’t return any explicit value from those return statements:`，意思就是你虽然定义了 void，但是作为函数可以返回任何值，所以如果你用 undefined 就会报错但是 `void` 不会：
+
+```typescript
+function doSomething(callback: () => void) {
+  // at this position, callback always returns undefined
+  let c = callback()
+  //c is also of type undefiend
+}
+
+// this function returns a number
+function aNumberCallback(): number {
+  return 2;
+}
+
+// works 👍 type safety is ensured in doSometing
+doSomething(aNumberCallback)
+
+// if you change the code above like
+- function doSomething(callback: () => void) {
++ function doSomething(callback: () => undefined) { /* ... */ }
+
+function aNumberCallback(): number { return 2; }
+
+// 💥 types don't match
+doSomething(aNumberCallback)
+```
+
+官网的解释说 `void` 的含义应当是不指望函数返回任何结果，实际上函数你返回什么东西我不 care，所以导致这个结果，我觉得也 make sense，不然直接用 undefined 不就好了
+
+#### P.S. 补充
+
+1. 很多时候我们并不需要显示声明变量的类型，例如
+
+```typescript
+let msg: string = "hello there!"
+// equal to
+let msg = "hello there!"
+```
+
+因为 TypeScript 能够推断（infer）出 `msg` 变量是 string，并且在 IDE 中，当鼠标 hover 在 msg 上时，会自动弹出 TS 的类型提示
+
+2. TS 可以做 downleveling ：downleveling 是指在编译 TS 到 JS 时，对应的 ECMAScript 版本，TS 能够直接将 TS 代码转换成低版本的 ECMAScript， 通过 `--target` 参数可以在 `tsc` 中指定， 例如：
+
+```shell
+tsc --target es2015 input.ts
+```
+
+​ 或者在 tsconfig.json （babel）中指定
+
+3. 最主要、实用的 2 个 TS 编译选项（in tsconfig.json）：
+   - `noImplicitAny`：如果 TS 推测一个变量类型是 `any`，则会抛出错误，除非你显示指定变量类型是 `any` ，因为如果变量都是 `any`，那也失去了实用 TypeScript 的意义
+   - `strictNullChecks`：TS 中，`null` 和 `undefined` 默认可以赋值任何值，因为任何类型都不能明确定义不包含 `null` 和 `undefined`，但是不处理 `null` 和 `undefined` 会造成很多错误，例如注明的[billion dollar mistake](https://www.youtube.com/watch?v=ybrQvs4x0Ps&ab_channel=JoseCan)。而在严格空检查模式（`strictNullChecks`）下， `null` 和 `undefined` 值都 _不_ 属于任何一个类型，它们只能赋值给自己这种类型或者 `any` (有一个例外，`undefined` 也可以赋值给 `void`)。因此，在常规类型检查模式下 `T` 和 `T | ndefined` 被认为是等同的（因为 `undefined` 被看作 `T` 的子类型），但它们在严格类型检查模式下是不同的类型，只有 `T | undefined` 类型允许出现 `undefined` 值。`T` 和 `T | null` 也是这种情况。
+
+</Primary>
+
+<Primary title="1* 其他常见类型">
+
+### never
+
+never 类型表示的是那些永不存在的值的类型，never 类型是任何类型的子类型，也可以赋值给任何类型；然而，没有类型是 never 的子类型或可以赋值给 never 类型（除了 never 本身之外）。
+
+> 即使 any 也不可以赋值给 never。
+
+两个场景中 never 比较常见:
+
+```
+// 抛出异常的函数永远不会有返回值
+function error(message: string): never {
+    throw new Error(message);
+}
+// 空数组，而且永远是空的
+const empty: never[] = []
+```
+
+### 元组（Tuple）
+
+元组类型与数组类型非常相似，表示一个已知元素数量和类型的数组，各元素的类型不必相同。
+
+比如，你可以定义一对值分别为`string`和`number`类型的元组。
+
+```
+let x: [string, number];
+x = ['hello', 10, false] // Error
+x = ['hello'] // Error
+```
+
+我们看到，这就是元组与数组的不同之处，元组的类型如果多出或者少于规定的类型是会报错的，必须严格跟事先声明的类型一致才不会报错。
+
+那么有人会问，我们的类型完全一致，只是顺序错了有没有问题，比如上个例子中我们把 `string`、`number` 调换位置：
+
+```
+let x: [string, number];
+x = ['hello', 10]; // OK
+x = [10, 'hello']; // Error
+```
+
+我们看到，元组非常严格，即使类型的顺序不一样也会报错。
+
+元组中包含的元素，必须与声明的类型一致，而且不能多、不能少，甚至顺序不能不符。
+
+我们可以把元组看成严格版的数组，比如`[string, number]`我们可以看成是:
+
+```
+interface Tuple extends Array<string | number> {
+  0: string;
+  1: number;
+  length: 2;
+}
+```
+
+元组继承于数组，但是比数组拥有更严格的类型检查。
+
+### Object
+
+object 表示非原始类型，也就是除 number，string，boolean，symbol，null 或 undefined 之外的类型。
+
+```
+// 这是下一节会提到的枚举类型
+enum Direction {
+    Center = 1
+}
+let value: object
+value = Direction
+value = [1]
+value = [1, 'hello']
+value = {}
+```
+
+我们看到,普通对象、枚举、数组、元组通通都是 `object` 类型。
+
+### Enum
+
+关于 Enum 的详细讲解可以查看[博客](https://g.yuque.com/cuggz/ts/dzzf93)第 6 节，这里主要讲一下枚举的本质：
+
+例如如下 ts 代码
+
+```typescript
+enum Direction {
+  Up = 10,
+  Down,
+  Left,
+  Right,
+}
+```
+
+在经过 `tsc` 编译过后会得到：
+
+```javascript
+var Direction
+;(function (Direction) {
+  Direction[(Direction["Up"] = 10)] = "Up"
+  Direction[(Direction["Down"] = 11)] = "Down"
+  Direction[(Direction["Left"] = 12)] = "Left"
+  Direction[(Direction["Right"] = 13)] = "Right"
+})(Direction || (Direction = {}))
+```
+
+从而你可以得到 `Direction[10] === 'Up'` 以及 `Direction['Up'] === 10`，也就是 `key <=> value` 双向绑定，所以 Enum 实际上就是一个经过特殊处理的 Object
+
+查看如下代码：
+
+```typescr
+enum Enum {
+  A,
+}
+
+let a = Enum.A;
+let nameOfA = Enum[a]; // "A"
+```
+
+这样可以看到反向映射的作用，不过实际应用场景应该不多
+
+另外关于 `const` enums 和 enums vs object，可以查看[官网](https://www.typescriptlang.org/docs/handbook/enums.html)的说明，这里就不再赘述
+
+</Primary>
+
+<Primary title="2. Type 和 Interface">
+
+Type 和 Interface 的基本使用就不再说明，很容易搜到，这里主要讨论下它们之间的区别：
+
+主要区别是 type 一旦定义就不能添加新的属性（properties），而 interface 可以，可以参考官网的[例子](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#differences-between-type-aliases-and-interfaces) （下面也给出了相关 code，但是由于没能解决 MDX 渲染 code block 的问题，所以没有官网展示得清晰）
+
+```typescript
+// Extending an interface
+interface Animal {
+  name: string
+}
+
+interface Bear extends Animal {
+  honey: boolean
+}
+
+const bear = getBear()
+bear.name
+bear.honey
+
+// Extending a type via intersections
+type Animal = {
+  name: string
+}
+
+type Bear = Animal & {
+  honey: Boolean
+}
+
+const bear = getBear()
+bear.name
+bear.honey
+
+// Adding new fields to an existing interface
+interface Window {
+  title: string
+}
+
+interface Window {
+  ts: TypeScriptAPI
+}
+
+const src = 'const a = "Hello World"'
+window.ts.transpileModule(src, {})
+
+// A type cannot be changed after being created
+type Window = {
+  title: string
+}
+
+type Window = {
+  ts: TypeScriptAPI
+}
+
+// Error: Duplicate identifier 'Window'.
+```
+
+另外还有以下几点：
+
+- `type` 在 TS 4.2 之前或许会在错误提示中显示一些匿名类型（而非你指定的类型），这个结果或许不是你想要的，可以查看官网的[PlayGround](https://www.typescriptlang.org/play?ts=4.2.3#code/PTAEGEHsFsAcEsA2BTATqNrLusgzngIYDm+oA7koqIYuYQJ56gCueyoAUCKAC4AWHAHaFcoSADMaQ0PCG80EwgGNkALk6c5C1EtWgAsqOi1QAb06groEbjWg8vVHOKcAvpokshy3vEgyyMr8kEbQJogAFND2YREAlOaW1soBeJAoAHSIkMTRmbbI8e6aPMiZxJmgACqCGKhY6ABGyDnkFFQ0dIzMbBwCwqIccabcYLyQoKjIEmh8kwN8DLAc5PzwwbLMyAAeK77IACYaQSEjUWZWhfYAjABMAMwALA+gbsVjoADqgjKESytQPxCHghAByXigYgBfr8LAsYj8aQMUASbDQcRSExCeCwFiIQh+AKfAYyBiQFgOPyIaikSGLQo0Zj-aazaY+dSaXjLDgAGXgAC9CKhDqAALxJaw2Ib2RzOISuDycLw+ImBYKQflCkWRRD2LXCw6JCxS1JCdJZHJ5RAFIbFJU8ADKC3WzEcnVZaGYE1ABpFnFOmsFhsil2uoHuzwArO9SmAAEIsSFrZB-GgAjjA5gtVN8VCEc1o1C4Q4AGlR2AwO1EsBQoAAbvB-gJ4HhPgB5aDwem-Ph1TCV3AEEirTp4ELtRbTPD4vwKjOfAuioSQHuDXBcnmgACC+eCONFEs73YAPGGZVT5cRyyhiHh7AAON7lsG3vBggB8XGV3l8-nVISOgghxoLq9i7io-AHsayRWGaFrlFauq2rg9qaIGQHwCBqChtKdgRo8TxRjeyB3o+7xAA)，当你选择 TS 版本低于 4.2，并且鼠标 hover 在最下面的错误代码时，提示信息中并不会包含你指定的类名
+- `type` 能够自定义命名原始数据类型（primitive），而 `interface` 不行
+- 虽然 TS 是根据形状识别类型的（structural typing），但是如果不显示指定 `interface` 名而导致的报错，则不会显示该 `interface` 名，具体可以看下面的例子
+
+```typescript
+// Compiler error messages will always use
+// the name of an interface:
+
+interface Mammal {
+  name: string
+}
+
+function echoMammal(m: Mammal) {
+  console.log(m.name)
+}
+
+// e.g. The error below will always use the name Mammal
+// to refer to the type which is expected:
+echoMammal({ name: 12343 })
+
+// The type of `m` here is the exact same as mammal,
+// but as it's not been directly named, TypeScript
+// won't mention it in the error messaging
+
+function echoAnimal(m: { name: string }) {
+  console.log(m.name)
+}
+
+echoAnimal({ name: 12345 })
+```
+
+大多数时候，你可以根据个人喜好选择使用 `type` 还是 `interface`，如果你喜欢启发式编程，则考虑使用 `interface`， 直到你需要 `type`的一些特性
+
+</Primary>
+
+<Warning title="参考连接">
+
+1. [WangDoc JS 教程](https://wangdoc.com/javascript/types/number.html)
+2. [对 js 中表达式和语句的理解](https://zhuanlan.zhihu.com/p/38622128#:~:text=%E4%B8%80%E8%88%AC%E6%83%85%E5%86%B5%E4%B8%8B%EF%BC%8C%E5%9C%A8js,%E7%9A%84%E6%93%8D%E4%BD%9C%EF%BC%8C%E6%AF%94%E5%A6%82%E8%B5%8B%E5%80%BC%E8%AF%AD%E5%8F%A5%EF%BC%9A&text=%E8%AF%AD%E5%8F%A5%E5%92%8C%E8%A1%A8%E8%BE%BE%E5%BC%8F%E7%9A%84%E5%8C%BA%E5%88%AB%E5%9C%A8%E4%BA%8E%EF%BC%8C%E8%AF%AD%E5%8F%A5%E6%98%AF%E4%B8%BA%E4%BA%86,%E7%9A%84%E5%80%BC%E4%B8%8D%E5%8C%85%E6%8B%ACundefined%EF%BC%89%E3%80%82)
+3. [StackOverFlow 关于 double 表示](https://stackoverflow.com/questions/2003493/javascript-float-from-to-bits)
+
+</Warning>
