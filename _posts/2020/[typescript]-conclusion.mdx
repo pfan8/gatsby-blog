@@ -651,6 +651,253 @@ b as A // error
 
 </Primary>
 
+<Primary title="3. 函数、泛型">
+## 3. 函数、泛型
+函数的参数和返回值类型定义就不多说了，比较基础，说一下进阶的东西。
+
+首先，函数可以通过 `type`, `interface` 定义，并且 `type` 或 `interface` 可以是包含 function 属性的 object，因为 JS 中的 Function 也是对象，所以只要是 function 的属性，都可以定义。例如：
+
+```typescript
+type DescribableFunction = {
+  description: string
+  (someArg: number): boolean
+}
+function doSomething(fn: DescribableFunction) {
+  console.log(fn.description + " returned " + fn(6))
+}
+```
+
+这里定义了 fn 的 description 类型，而 DescribableFunction 依然是可以调用的函数
+
+- 构造函数 Constructor
+
+对于构造函数，需要使用 `new` 关键字，而在 TS 中，同样可以定义构造函数，也是用 `new`
+
+```typescript
+type SomeConstructor = {
+  new (s: string): SomeObject
+}
+function fn(ctor: SomeConstructor) {
+  return new ctor("hello")
+}
+```
+
+另外，比如 JS 中的 Date，既可以通过 new 构造，也可以不用 new，直接调用（作为函数），就可以如下定义：
+
+```typescript
+interface CallOrConstruct {
+  new (s: string): Date
+  (n?: number): number
+}
+```
+
+- 泛型 Generic
+
+属性 Java 或者 C++ 的应该对泛型变成也比较属性，简单来说，泛型就是我不指定具体的类型，但是我知道这些变量是同一种类型，例如：
+
+```typescript
+function firstElement<Type>(arr: Type[]): Type {
+  return arr[0]
+}
+
+// s is of type 'string'
+const s = firstElement(["a", "b", "c"])
+// n is of type 'number'
+const n = firstElement([1, 2, 3])
+```
+
+而泛型的类型 `T`，可以通过 `extends`，`keyof` 等关键字进行约束：
+
+```typescript
+function longest<Type extends { length: number }>(a: Type, b: Type) {
+  if (a.length >= b.length) {
+    return a
+  } else {
+    return b
+  }
+}
+
+// longerArray is of type 'number[]'
+const longerArray = longest([1, 2], [1, 2, 3])
+// longerString is of type 'string'
+const longerString = longest("alice", "bob")
+// Error! Numbers don't have a 'length' property
+const notOK = longest(10, 100)
+```
+
+再来看下面这个例子，看上去仿佛没有问题，但 TS 会报错
+
+```typescript
+function minimumLength<Type extends { length: number }>(
+  obj: Type,
+  minimum: number
+): Type {
+  if (obj.length >= minimum) {
+    return obj
+  } else {
+    return { length: minimum }
+    // Type '{ length: number; }' is not assignable to type 'Type'. '{ length: number; }' is assignable to the constraint of type 'Type', but 'Type' could be instantiated with a different subtype of constraint '{ length: number; }'.
+  }
+}
+```
+
+你说返回值符合 `{ length: number }` 了啊？这也是常见错误，因为我们要求函数返回的是 Type，它虽然继承了 `{ length: number }`，但很有可能有比父类更丰富的功能，而如果 TS 只要求满足父类的约束，就会导致下面的代码也通过：
+
+```typescript
+// 'arr' gets value { length: 6 }
+const arr = minimumLength([1, 2, 3], 6)
+// and crashes here because arrays have
+// a 'slice' method, but not the returned object!
+console.log(arr.slice(0))
+```
+
+另外，通常来说泛型的类型是 TS 自动推测（infer）的，但是你也可以自己指定类型，例如：
+
+```typescript
+function combine<Type>(arr1: Type[], arr2: Type[]): Type[] {
+  return arr1.concat(arr2)
+}
+
+// Type 'string' is not assignable to type 'number'.
+const arr = combine([1, 2, 3], ["hello"])
+
+// Correct
+const arr = combine<string | number>([1, 2, 3], ["hello"])
+```
+
+如果不指定，TS 会推测类型为 number，从而报错。
+
+泛型编程虽然有趣，但有一些原则应当遵循：
+
+> **Rule 1**: When possible, use the type parameter itself rather than constraining it
+
+我们应当尽量使用更少的 TS 关键字定义泛型，否则因为过于复杂 TS 很可能无法推断出变量的类型，当你鼠标 hover 在变量上时，就不能知道它是什么类型了、
+
+```typescript
+function firstElement1<Type>(arr: Type[]) {
+  return arr[0]
+}
+
+function firstElement2<Type extends any[]>(arr: Type) {
+  return arr[0]
+}
+
+// a: number (good)
+const a = firstElement1([1, 2, 3])
+// b: any (bad)
+const b = firstElement2([1, 2, 3])
+```
+
+> **Rule 2**: Always use as few type parameters as possible
+
+另外一个例子
+
+```typescript
+function filter1<Type>(arr: Type[], func: (arg: Type) => boolean): Type[] {
+  return arr.filter(func)
+}
+
+function filter2<Type, Func extends (arg: Type) => boolean>(
+  arr: Type[],
+  func: Func
+): Type[] {
+  return arr.filter(func)
+}
+```
+
+filter1 比 filter2 要好，因为 filter2 凭空创建了一个不需要的泛型 `Func`，对于函数调用方，必须指定一个无用的类型去适配 `Func`，同时，降低了可读性
+
+> **Rule**: If a type parameter only appears in one location, strongly reconsider if you actually need it
+
+有时候我们并不需要定义泛型，而我们可能并未注意
+
+```typescript
+function greet<Str extends string>(s: Str) {
+  console.log("Hello, " + s)
+}
+
+greet("world")
+
+function greet(s: string) {
+  console.log("Hello, " + s)
+}
+```
+
+只有当 `Str` 使用超过 2 次的时候，我们才应当考虑使用它
+
+### 最后，来看看函数重载（Function Overloads）
+
+对于 JS 来说，是不存在函数重载的，因为函数名必须一致，但是在 TS 中，有 `Function Overloads` 的概念，不过 TS 中的重载和传统语言 JAVA|C++ 不一样，TS 中可以有多个函数定义，但是只能有一个函数实现，不然就无法编译成 JS 文件了，例如：
+
+```typescript
+function makeDate(timestamp: number): Date
+function makeDate(m: number, d: number, y: number): Date
+function makeDate(mOrTimestamp: number, d?: number, y?: number): Date {
+  if (d !== undefined && y !== undefined) {
+    return new Date(y, mOrTimestamp, d)
+  } else {
+    return new Date(mOrTimestamp)
+  }
+}
+const d1 = makeDate(12345678)
+const d2 = makeDate(5, 5, 5)
+const d3 = makeDate(1, 3)
+```
+
+在 VS Code 中，如果你将鼠标 hover 在 makeDate 调用的地方（d1,d2,d3），会分别看到具体调用的是哪个重载的函数版本，这样对于开发人员来说无疑是一件幸福的事情，代码变得更可读了~
+
+P.S. 另外可以看到，如果存在参数个数不匹配的情况（2 个），TS 会链接到参数个数少于它的那一个定义
+
+重载的函数定义必须符合函数实现，否则 TS 报错：
+
+```typescript
+function fn(x: string): void;
+function fn() {
+  // ...
+}
+// Expected to be able to call with zero arguments
+fn();
+Expected 1 arguments, but got 0.
+```
+
+```typescript
+function fn(x: boolean): void
+// Argument type isn't right
+function fn(x: string): void
+// This overload signature is not compatible with its implementation signature.
+function fn(x: boolean) {}
+```
+
+对于相同个数的参数，应当尽量考虑使用 Union 而非重载，这样错误提示可读性更强：
+
+```typescript
+function len(s: string): number
+function len(arr: any[]): number
+function len(x: any) {
+  return x.length
+}
+
+len("") // OK
+len([0]) // OK
+len(Math.random() > 0.5 ? "hello" : [0])
+/** 
+  No overload matches this call.
+  Overload 1 of 2, '(s: string): number', gave the following error.
+    Argument of type 'number[] | "hello"' is not assignable to parameter of type 'string'.
+      Type 'number[]' is not assignable to type 'string'.
+  Overload 2 of 2, '(arr: any[]): number', gave the following error.
+    Argument of type 'number[] | "hello"' is not assignable to parameter of type 'any[]'.
+      Type 'string' is not assignable to type 'any[]'.
+*/
+
+// this is better
+function len(x: any[] | string) {
+  return x.length
+}
+```
+
+</Primary>
+
 <Warning title="参考连接">
 
 ## 参考连接
