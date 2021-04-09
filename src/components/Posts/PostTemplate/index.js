@@ -24,7 +24,7 @@ import ToggleMode from "../../Layout/ToggleMode"
 import { theme } from "../../Shared/styles-global"
 import LinkEdgePosts from "../../LinkEdgePosts"
 import ShareButtons from "../../ShareButtons"
-import ChevronRight from "../../../../_assets/icons/chevron-right.svg"
+import Circle from "../../../../_assets/icons/dot-circle-regular.svg"
 import {
   Primary,
   Danger,
@@ -58,11 +58,23 @@ class PostTemplate extends React.Component {
     if (comments.utterances.enabled && comments.utterances.repoUrl) {
       this.registerUtterancesComments(comments.utterances.repoUrl)
     }
+    this.listenTOC()
   }
 
   componentDidUpdate() {
     if (window.FB) {
       window.FB.XFBML.parse()
+    }
+  }
+
+  // refer https://codepen.io/electerious/pen/GzrmwB, but not work for now
+  listenTOC() {
+    document.querySelector(".table-of-contents").onmousemove = (e) => {
+      const x = e.pageX - e.target.offsetLeft
+      const y = e.pageY - e.target.offsetTop
+
+      e.target.style.setProperty("--x", `${x}px`)
+      e.target.style.setProperty("--y", `${y}px`)
     }
   }
 
@@ -193,7 +205,7 @@ class PostTemplate extends React.Component {
         return (
           <li>
             <span className="icon-wrap">
-              <ChevronRight className="icon-chevron-right" />
+              <Circle className="icon-chevron-right" />
             </span>
             <span className="ul-children">{children}</span>
           </li>
@@ -394,6 +406,9 @@ const StyledHTML = styled.div`
   }
 
   a {
+    &.anchor {
+      display: none;
+    }
     color: steelblue;
   }
 
@@ -462,5 +477,21 @@ const StyledHTML = styled.div`
     ol {
       margin-right: 1rem;
     }
+  }
+
+  .table-of-contents {
+    --x: 50%;
+    --y: 50%;
+
+    position: relative;
+    appearance: none;
+    padding: 1em 2em;
+    outline: none;
+    border-radius: 2em;
+
+    // The magic
+    border: 2px solid transparent;
+    background: ${() =>
+      setThemeVars(configStyles.fontColorDark, configStyles.fontColorLight)};
   }
 `

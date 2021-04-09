@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 import styled from "styled-components"
 import PropTypes from "prop-types"
 import { theme } from "../../Shared/styles-global"
@@ -15,6 +15,15 @@ const TextBlock = ({
   padding = "2rem 1.5rem",
   title = "",
 }) => {
+  // for TOC, if h1~h6 same to title, display none
+  useEffect(() => {
+    const hNodes = document.querySelectorAll("h1, h2, h3, h4, h5, h6")
+    hNodes.forEach((node) => {
+      if (node.innerText === title && !node.className.includes("TextBlock")) {
+        node.style.display = "none"
+      }
+    })
+  }, [title])
   let iconElement
 
   switch (theme) {
@@ -82,8 +91,8 @@ const StyledTextBlock = styled.div`
   border-color: ${() => setThemeVars("#666", theme.fontColorDark)};
   background: ${() => setThemeVars("#f6f5f8", `#36353b`)};
   /* Based on chosen theme */
-  border-color: ${props => color[props.theme]};
-  background: ${props =>
+  border-color: ${(props) => color[props.theme]};
+  background: ${(props) =>
     setThemeVars(bgColorLight[props.theme], bgColorDark[props.theme])};
 `
 
@@ -100,7 +109,7 @@ const StyledIconWrap = styled.div`
     /* Default */
     fill: ${() => setThemeVars("#666", theme.fontColorDark)};
     /* Theme */
-    fill: ${props => color[props.theme]};
+    fill: ${(props) => color[props.theme]};
   }
 `
 
@@ -112,5 +121,5 @@ const StyledTitle = styled.h2`
   /* Default */
   color: ${() => setThemeVars("#666", theme.fontColorDark)};
   /* Theme */
-  color: ${props => color[props.theme]};
+  color: ${(props) => color[props.theme]};
 `

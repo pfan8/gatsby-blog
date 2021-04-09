@@ -78,8 +78,19 @@ module.exports = {
               strict: `ignore`,
             },
           },
+          {
+            resolve: `gatsby-remark-table-of-contents`,
+            options: {
+              tight: false,
+              ordered: false,
+              fromHeading: 1,
+              toHeading: 6,
+              className: "table-of-contents",
+            },
+          },
+          `gatsby-remark-autolink-headers`,
         ],
-        remarkPlugins: [remarkMath, require('remark-html-katex')],
+        remarkPlugins: [remarkMath, require("remark-html-katex")],
       },
     },
 
@@ -129,7 +140,8 @@ module.exports = {
     {
       resolve: "@sentry/gatsby",
       options: {
-        dsn: "https://3c4e4380e42743098667bf3e22afa54d@o559656.ingest.sentry.io/5694695",
+        dsn:
+          "https://3c4e4380e42743098667bf3e22afa54d@o559656.ingest.sentry.io/5694695",
         sampleRate: 0.7,
       },
     },

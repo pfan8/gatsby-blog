@@ -5,47 +5,53 @@ tags: [TypeScript]
 excerpt: TS介绍，编译器，基本数据类型，接口，泛型，高级用法...
 ---
 
+```toc
+# This code block gets replaced with the TOC
+```
+
 <Info title="前言">
+
+## 前言
 
 ### TypeScript 三大疑问
 
-1. 是什么？
+**1. 是什么？**
 
-   TypeScript（简称 TS）是一门讲 JavaScript 进行封装，对类型进行静态检查的工具 - `tools`（[官方](https://www.typescriptlang.org/)是这么说的），简单来说，可以将 TS 理解为 JS 的超集，如果你熟悉 ES5/6，那么 TS 和他们的关系可以形象的描绘成下图
+TypeScript（简称 TS）是一门讲 JavaScript 进行封装，对类型进行静态检查的工具 - `tools`（[官方](https://www.typescriptlang.org/)是这么说的），简单来说，可以将 TS 理解为 JS 的超集，如果你熟悉 ES5/6，那么 TS 和他们的关系可以形象的描绘成下图
 
-   ![](https://thumbsnap.com/i/u81p6GFb.png?0409)
+![](https://thumbsnap.com/i/u81p6GFb.png?0409)
 
-   TS 提供了静态类型定义的功能，灵活的接口及复杂对象的定义，使得 TS 成为十分强大的工具，在社区保持着非常高的活跃度，与此同时，TS 也是微软的开源项目，你甚至可以到 github 查看 TS 的源码，提 issue 和 PR 。
+TS 提供了静态类型定义的功能，灵活的接口及复杂对象的定义，使得 TS 成为十分强大的工具，在社区保持着非常高的活跃度，与此同时，TS 也是微软的开源项目，你甚至可以到 github 查看 TS 的源码，提 issue 和 PR 。
 
-2. 为什么？
+**2. 为什么？**
 
-   我们先看看在 JavaScript 项目中最常见的十大错误：
+我们先看看在 JavaScript 项目中最常见的十大错误：
 
-   ![](https://thumbsnap.com/i/tQsEEBNJ.png?0409)
+![](https://thumbsnap.com/i/tQsEEBNJ.png?0409)
 
-   我们是不是耳熟能详？这些低级错误占用了大量 debug 和 google 的时间，而如果你用 TypeScript 可以在编写阶段就规避了，自从我们用了 TypeScript 之后，低级报错基本就没犯过，大多数情况下是我们自身编写的程序逻辑错误。
+我们是不是耳熟能详？这些低级错误占用了大量 debug 和 google 的时间，而如果你用 TypeScript 可以在编写阶段就规避了，自从我们用了 TypeScript 之后，低级报错基本就没犯过，大多数情况下是我们自身编写的程序逻辑错误。
 
-   很多项目，尤其是中大型项目，我们是需要团队多人协作的，那么如何保证协作呢？这个时候可能需要大量的文档和注释，显式类型就是最好的注释，而通过 TypeScript 提供的类型提示功能我们可以非常舒服地调用同伴的代码，由于 TypeScript 的存在我们可以节省大量沟通成本、代码阅读成本等等。
+很多项目，尤其是中大型项目，我们是需要团队多人协作的，那么如何保证协作呢？这个时候可能需要大量的文档和注释，显式类型就是最好的注释，而通过 TypeScript 提供的类型提示功能我们可以非常舒服地调用同伴的代码，由于 TypeScript 的存在我们可以节省大量沟通成本、代码阅读成本等等。
 
-   ![](https://thumbsnap.com/i/8jL1wfCb.png?0409)
+![](https://thumbsnap.com/i/8jL1wfCb.png?0409)
 
-   如果上述两个主要优点还不能吸引你的话，那么我可以负责任地告诉你，升职加薪需要 TS，怎么样，香不香 XD
+如果上述两个主要优点还不能吸引你的话，那么我可以负责任地告诉你，升职加薪需要 TS，怎么样，香不香 XD
 
-3. 怎么做到的？
+**3. 怎么做到的？**
 
-   分两种模式：
+分两种模式：
 
-   1. 如果在 `tsc` 等指令执行之前，IDE 发现了 ts 中的语法错误，这是通过 IDE 和 LSP 来实现的，更为详细的讲解在[下一节](#Ⅱ. TypeScript 工作原理)
-   2. Typescript 编译器将对应的 ts 文件，根据你在 tsconfig.json 中指定好的模式，将 ts 文件编译成 js 文件，这个编译器借助 node 引擎实现，并在执行过程中对 ts 代码进行检查，如果发现错误则停止编译，并打印错误信息。如果有 map 文件，还会提示对应 ts 文件中出错的行数
+1. 如果在 `tsc` 等指令执行之前，IDE 发现了 ts 中的语法错误，这是通过 IDE 和 LSP 来实现的，更为详细的讲解在[下一节](#Ⅱ. TypeScript 工作原理)
+2. Typescript 编译器将对应的 ts 文件，根据你在 tsconfig.json 中指定好的模式，将 ts 文件编译成 js 文件，这个编译器借助 node 引擎实现，并在执行过程中对 ts 代码进行检查，如果发现错误则停止编译，并打印错误信息。如果有 map 文件，还会提示对应 ts 文件中出错的行数
 
-4. 权衡
+**4. 权衡**
 
-   一个新的技术，在使用之前的调研阶段，通常都会对其进行权衡，因为大部分情况下这项技术一定有优缺点，有它自身的适用场景，那么对于 TS 来说，上面说了那么多优点，下面说一下主要问题：
+一个新的技术，在使用之前的调研阶段，通常都会对其进行权衡，因为大部分情况下这项技术一定有优缺点，有它自身的适用场景，那么对于 TS 来说，上面说了那么多优点，下面说一下主要问题：
 
-   - 配置以及用好 TS 需要一定的学习成本，并且由于 TS 技术不如 JS 那么成熟，社区也不如 JS 丰富，对于一些问题解答以及工具数量都远不如 JS 和 node，需要承担一定的风险
-   - 如果不打算重写 JS 项目，只是加上 TS 编译器的话，原先的组件接口并不能享受 TS 带来的红利—— IDE 中输入或者鼠标悬浮没有接口参数提示，没有类型检查，这样其实使用 TS 的意义就小了很多。
+- 配置以及用好 TS 需要一定的学习成本，并且由于 TS 技术不如 JS 那么成熟，社区也不如 JS 丰富，对于一些问题解答以及工具数量都远不如 JS 和 node，需要承担一定的风险
+- 如果不打算重写 JS 项目，只是加上 TS 编译器的话，原先的组件接口并不能享受 TS 带来的红利—— IDE 中输入或者鼠标悬浮没有接口参数提示，没有类型检查，这样其实使用 TS 的意义就小了很多。
 
-   但是综上来看，绝大部分场景下使用 TS 是利大于弊的，即便是对于个人项目而言，减少不必要的低级错误所省下的时间，通常来说都比你多写一些 TS 类型定义的代码花费时间要多，只是需要你学会 TS 并用好 TS : )
+但是综上来看，绝大部分场景下使用 TS 是利大于弊的，即便是对于个人项目而言，减少不必要的低级错误所省下的时间，通常来说都比你多写一些 TS 类型定义的代码花费时间要多，只是需要你学会 TS 并用好 TS : )
 
 总而言之，你可以将 TS 当做一种语法糖，但 TS 的核心思想是想讲 JS 转换成静态语言，如果微软真的在下一盘大棋，TS 积累了足够的用户群体后，脱离 V8，babel 等编译环境，成为真正的静态语言的话，那就真是将前端彻底洗牌了，不可谓不 NB 啊！当然目前仅仅是对其的猜测，具体如何，需要继续观望，但是无论怎样，使用 TS 依然成为一种流行趋势，TS 确实是一个强大而高效的工具，能够帮助我们在大型 node 项目开发过程中避免一些低级错误以及更好的 IDE 接口提示，提高团队整体的开发效率。
 
@@ -199,6 +205,8 @@ DefinitelyTyped 的声明文件位于 `@types` 命名空间中。所以如果我
 
 <Primary title="1. 基础类型">
 
+## 1. 基础类型
+
 以下左边对应 JavaScript，右边是 TypeScript
 
 - Boolean：boolean
@@ -273,7 +281,7 @@ doSomething(aNumberCallback)
 
 官网的解释说 `void` 的含义应当是不指望函数返回任何结果，实际上函数你返回什么东西我不 care，所以导致这个结果，我觉得也 make sense，不然直接用 undefined 不就好了
 
-#### P.S. 补充
+### P.S. 补充
 
 1. 很多时候我们并不需要显示声明变量的类型，例如
 
@@ -295,11 +303,17 @@ tsc --target es2015 input.ts
 
 3. 最主要、实用的 2 个 TS 编译选项（in tsconfig.json）：
    - `noImplicitAny`：如果 TS 推测一个变量类型是 `any`，则会抛出错误，除非你显示指定变量类型是 `any` ，因为如果变量都是 `any`，那也失去了实用 TypeScript 的意义
-   - `strictNullChecks`：TS 中，`null` 和 `undefined` 默认可以赋值任何值，因为任何类型都不能明确定义不包含 `null` 和 `undefined`，但是不处理 `null` 和 `undefined` 会造成很多错误，例如注明的[billion dollar mistake](https://www.youtube.com/watch?v=ybrQvs4x0Ps&ab_channel=JoseCan)。而在严格空检查模式（`strictNullChecks`）下， `null` 和 `undefined` 值都 _不_ 属于任何一个类型，它们只能赋值给自己这种类型或者 `any` (有一个例外，`undefined` 也可以赋值给 `void`)。因此，在常规类型检查模式下 `T` 和 `T | ndefined` 被认为是等同的（因为 `undefined` 被看作 `T` 的子类型），但它们在严格类型检查模式下是不同的类型，只有 `T | undefined` 类型允许出现 `undefined` 值。`T` 和 `T | null` 也是这种情况。
+   - `strictNullChecks`：TS 中，`null` 和 `undefined` 默认可以赋值任何值，因为任何类型都不能明确定义不包含 `null` 和 `undefined`，但是不处理 `null` 和 `undefined` 会造成很多错误，例如注明的[billion dollar mistake](https://www.youtube.com/watch?v=ybrQvs4x0Ps&ab_channel=JoseCan)。而在严格空检查模式（`strictNullChecks`）下， `null` 和 `undefined` 值都 _不_ 属于任何一个类型，它们只能赋值给自己这种类型或者 `any` (有一个例外，`undefined` 也可以赋值给 `void`)。因此，在常规类型检查模式下 `T` 和 `T | undefined` 被认为是等同的（因为 `undefined` 被看作 `T` 的子类型），但它们在严格类型检查模式下是不同的类型，只有 `T | undefined` 类型允许出现 `undefined` 值。`T` 和 `T | null` 也是这种情况。
 
 </Primary>
 
 <Primary title="1* 其他常见类型">
+
+## 1\* 其他常见类型
+
+### unknown
+
+unknown 大多数时候很 any 很像，代表着变量可以使任何未知的类型，区别是 unknown 变量不能够访问属性或者调用对象上绑定的函数，而 any 可以，因此可以认为 unknown 更为安全
 
 ### never
 
@@ -418,9 +432,98 @@ let nameOfA = Enum[a]; // "A"
 
 另外关于 `const` enums 和 enums vs object，可以查看[官网](https://www.typescriptlang.org/docs/handbook/enums.html)的说明，这里就不再赘述
 
+### 字面量类型 (Literal Types)
+
+是的，你没看错，字面量也可以成为类型，不仅如此，数字也可以，但是这种类型就意味着只能赋值一个值：
+
+```typescript
+let x: "hello" = "hello"
+// OK
+x = "hello"
+// Type '"howdy"' is not assignable to type '"hello"'.
+x = "howdy"
+```
+
+那么这种字面量类型有什么用呢？
+
+通常，是配合 Union，保证这个类型只接受这几种值，否则就认为是错误，从而增强安全性：
+
+```typescript
+function printText(s: string, alignment: "left" | "right" | "center") {
+  // ...
+}
+printText("Hello, world", "left")
+printText("G'day, mate", "centre")
+// Argument of type '"centre"' is not assignable to parameter of type '"left" | "right" | "center"'.
+```
+
+数字字面量类型 (Numeric literal types)
+
+```typescript
+function compare(a: string, b: string): -1 | 0 | 1 {
+  return a === b ? 0 : a > b ? 1 : -1
+}
+```
+
+当然，你可以 Union 字面量和非字面量类型
+
+```typescript
+interface Options {
+  width: number
+}
+function configure(x: Options | "auto") {
+  // ...
+}
+configure({ width: 100 })
+configure("auto")
+configure("automatic")
+// Argument of type '"automatic"' is not assignable to parameter of type 'Options | "auto"'.
+```
+
+boolean 也是一样的，就不再赘述
+
+#### 对象中的字面量类型
+
+如果是对象中的属性，TypeScript 会将其推断为更通用的类型，例如
+
+```typescript
+const obj = { counter: 0 }
+if (someCondition) {
+  obj.counter = 1
+}
+```
+
+因为 TS 推断 couter 是 number 而不是类型 `0`，再看下面这个例子
+
+```typescript
+const req = { url: "https://example.com", method: "GET" }
+handleRequest(req.url, req.method)
+// Argument of type 'string' is not assignable to parameter of type '"GET" | "POST"'.
+```
+
+假设 handleRequest 要求 method 是字面量类型 `'GET'|'POST'`，这时候就需要 method 是字面量类型而不是 string 了，那么该怎么办呢？答案是用 as：
+
+```typescript
+// Change 1:
+const req = { url: "https://example.com", method: "GET" as "GET" }
+// Change 2
+handleRequest(req.url, req.method as "GET")
+```
+
+2 种写法都 work，除此之外，你可以在整个对象声明的时候就用 `as const`，因为这里的 `const` 只在 TS 中识别处理，因此会当做对象属性是字面量类型而不是 JS 中属性不可变的意思了：
+
+```typescript
+const req = { url: "https://example.com", method: "GET" } as const
+handleRequest(req.url, req.method)
+```
+
+这里，`req.method` 就会被当成 `"GET"` 类型从而通过 TS 检查
+
 </Primary>
 
 <Primary title="2. Type 和 Interface">
+
+## 2. Type 和 Interface
 
 Type 和 Interface 的基本使用就不再说明，很容易搜到，这里主要讨论下它们之间的区别：
 
@@ -512,12 +615,47 @@ echoAnimal({ name: 12345 })
 
 大多数时候，你可以根据个人喜好选择使用 `type` 还是 `interface`，如果你喜欢启发式编程，则考虑使用 `interface`， 直到你需要 `type`的一些特性
 
+### 2021-04-09 更新
+
+[Type Casting] 很多时候我们可能会在 cast 类型（as）的时候遇到问题，因为 Type Casting 要求转换的类型必须是更为精确的类型，否则不能转换，例如：
+
+```typescript
+undefined as number
+```
+
+就会报错，因为 number 并不是 undefined 的一个子类型，更进一步说，如果两个类型有交叉但不是继承也不行
+
+但是，再看看下面的代码 XD
+
+```typescript
+interface A {
+  a1: number
+  a2: Record<string, unknown>
+}
+declare let b: Record<string, unknown>
+b as A // error
+;(b as unknown) as A // pass
+```
+
+按理说 b 应该是可以 cast 给 A 的，但是并不行，而这，似乎是 TypeScript 的 bug！如果将 `interface` 改为 `type` 就可以了，否则你就需要做两层转换，`(b as unknown) as A`，其实和 `b as any` 差不多，这样 TS 系统失去了很多意义，但是相对 `any` 而言，转换为 `unknown` 更安全，因为不能访问变量内部属性
+
+关于这个 bug，在源码 repo 上有一个 [issue](https://github.com/microsoft/TypeScript/issues/15300) 对其进行了详细的讨论，然而非常遗憾，到目前（TypeScript 4.2）依然没能 fix 这个 bug。有一位总结说：
+
+1. A specific type can be saved into a more generic type.
+2. A specific interface cannot be saved into a more generic interface. (unexpected)
+3. A specific interface can extend an more generic interface.
+4. A specific type can be saved into a more generic interface.
+5. A specific interface cannot be saved into a more generic type.
+
+看来 `type` 比 `interface` 好用一些，但是个人观点是好用通常意味着相对不安全，可以看出 `interface` 的检查更严格，虽然这里是错误检查了……另外，很多知名的 lib （redux，rxjs）里还是使用 `interface` 的居多，估计也是由于上文所说的 `interface` 易于扩展的缘故，所以即便有这个 bug，还是优先考虑使用 `interface。`
+
 </Primary>
 
 <Warning title="参考连接">
 
-1. [WangDoc JS 教程](https://wangdoc.com/javascript/types/number.html)
-2. [对 js 中表达式和语句的理解](https://zhuanlan.zhihu.com/p/38622128#:~:text=%E4%B8%80%E8%88%AC%E6%83%85%E5%86%B5%E4%B8%8B%EF%BC%8C%E5%9C%A8js,%E7%9A%84%E6%93%8D%E4%BD%9C%EF%BC%8C%E6%AF%94%E5%A6%82%E8%B5%8B%E5%80%BC%E8%AF%AD%E5%8F%A5%EF%BC%9A&text=%E8%AF%AD%E5%8F%A5%E5%92%8C%E8%A1%A8%E8%BE%BE%E5%BC%8F%E7%9A%84%E5%8C%BA%E5%88%AB%E5%9C%A8%E4%BA%8E%EF%BC%8C%E8%AF%AD%E5%8F%A5%E6%98%AF%E4%B8%BA%E4%BA%86,%E7%9A%84%E5%80%BC%E4%B8%8D%E5%8C%85%E6%8B%ACundefined%EF%BC%89%E3%80%82)
-3. [StackOverFlow 关于 double 表示](https://stackoverflow.com/questions/2003493/javascript-float-from-to-bits)
+## 参考连接
+
+1. [Typescript Doc](https://www.typescriptlang.org/docs/handbook)
+2. [深入浅出 TypeScript](https://g.yuque.com/cuggz/ts/kkc0a9)
 
 </Warning>
