@@ -11,9 +11,9 @@ excerpt: TS介绍，编译器，基本数据类型，接口，泛型，高级用
 
 1. 是什么？
 
-   TypeScript（简称TS）是一门讲 JavaScript 进行封装，对类型进行静态检查的工具 - `tools`（[官方](https://www.typescriptlang.org/)是这么说的），简单来说，可以将 TS 理解为 JS 的超集，如果你熟悉 ES5/6，那么 TS 和他们的关系可以形象的描绘成下图
+   TypeScript（简称 TS）是一门讲 JavaScript 进行封装，对类型进行静态检查的工具 - `tools`（[官方](https://www.typescriptlang.org/)是这么说的），简单来说，可以将 TS 理解为 JS 的超集，如果你熟悉 ES5/6，那么 TS 和他们的关系可以形象的描绘成下图
 
-   ![](https://cdn.nlark.com/yuque/0/2020/png/1500604/1607150457181-1525aa41-e74b-4499-8899-d6aad2790d81.png)
+   ![](https://thumbsnap.com/i/u81p6GFb.png?0409)
 
    TS 提供了静态类型定义的功能，灵活的接口及复杂对象的定义，使得 TS 成为十分强大的工具，在社区保持着非常高的活跃度，与此同时，TS 也是微软的开源项目，你甚至可以到 github 查看 TS 的源码，提 issue 和 PR 。
 
@@ -21,13 +21,13 @@ excerpt: TS介绍，编译器，基本数据类型，接口，泛型，高级用
 
    我们先看看在 JavaScript 项目中最常见的十大错误：
 
-   ![](https://cdn.nlark.com/yuque/0/2020/png/1500604/1607150457323-21590262-0c8e-466c-bff1-2bebd93ec754.png)
+   ![](https://thumbsnap.com/i/tQsEEBNJ.png?0409)
 
    我们是不是耳熟能详？这些低级错误占用了大量 debug 和 google 的时间，而如果你用 TypeScript 可以在编写阶段就规避了，自从我们用了 TypeScript 之后，低级报错基本就没犯过，大多数情况下是我们自身编写的程序逻辑错误。
 
    很多项目，尤其是中大型项目，我们是需要团队多人协作的，那么如何保证协作呢？这个时候可能需要大量的文档和注释，显式类型就是最好的注释，而通过 TypeScript 提供的类型提示功能我们可以非常舒服地调用同伴的代码，由于 TypeScript 的存在我们可以节省大量沟通成本、代码阅读成本等等。
 
-   ![](https://cdn.nlark.com/yuque/0/2020/png/1500604/1607150457214-74efc77c-ef6c-4e20-a70f-8287b4699b3d.png)
+   ![](https://thumbsnap.com/i/8jL1wfCb.png?0409)
 
    如果上述两个主要优点还不能吸引你的话，那么我可以负责任地告诉你，升职加薪需要 TS，怎么样，香不香 XD
 
@@ -42,8 +42,8 @@ excerpt: TS介绍，编译器，基本数据类型，接口，泛型，高级用
 
    一个新的技术，在使用之前的调研阶段，通常都会对其进行权衡，因为大部分情况下这项技术一定有优缺点，有它自身的适用场景，那么对于 TS 来说，上面说了那么多优点，下面说一下主要问题：
 
-   + 配置以及用好 TS 需要一定的学习成本，并且由于 TS 技术不如 JS 那么成熟，社区也不如 JS 丰富，对于一些问题解答以及工具数量都远不如 JS 和 node，需要承担一定的风险
-   + 如果不打算重写 JS 项目，只是加上 TS 编译器的话，原先的组件接口并不能享受 TS 带来的红利—— IDE 中输入或者鼠标悬浮没有接口参数提示，没有类型检查，这样其实使用 TS 的意义就小了很多。
+   - 配置以及用好 TS 需要一定的学习成本，并且由于 TS 技术不如 JS 那么成熟，社区也不如 JS 丰富，对于一些问题解答以及工具数量都远不如 JS 和 node，需要承担一定的风险
+   - 如果不打算重写 JS 项目，只是加上 TS 编译器的话，原先的组件接口并不能享受 TS 带来的红利—— IDE 中输入或者鼠标悬浮没有接口参数提示，没有类型检查，这样其实使用 TS 的意义就小了很多。
 
    但是综上来看，绝大部分场景下使用 TS 是利大于弊的，即便是对于个人项目而言，减少不必要的低级错误所省下的时间，通常来说都比你多写一些 TS 类型定义的代码花费时间要多，只是需要你学会 TS 并用好 TS : )
 
@@ -57,9 +57,9 @@ TS 是不是银弹，我们不得而知，但是学好并用好 TS，一定对�
 
 那么为什么一定要 IDE 呢，这也和 TS 的工作机制有关，TS 的源代码是以两种独立方式处理的：
 
-+ 检查打开的编辑器是否存在错误：这是通过所谓的 [*language server*](https://langserver.org/) 完成的。它们是与编辑器无关的方法，可为编辑器提供与语言相关的服务（检测错误、重构、自动完成等）。编辑器（例如IDE）通过特殊协议（JSON-RPC，即基于JSON的远程过程调用）与语言服务器进行通信。这样一来，几乎可以用任何编程语言编写此类服务器。
+- 检查打开的编辑器是否存在错误：这是通过所谓的 [_language server_](https://langserver.org/) 完成的。它们是与编辑器无关的方法，可为编辑器提供与语言相关的服务（检测错误、重构、自动完成等）。编辑器（例如 IDE）通过特殊协议（JSON-RPC，即基于 JSON 的远程过程调用）与语言服务器进行通信。这样一来，几乎可以用任何编程语言编写此类服务器。
   - 要记住：language server 仅列出当前打开的编辑器的错误，且不编译 TypeScript，而是仅仅静态分析它。
-+ *Building*（将 TypeScript 文件编译为 JavaScript 文件）：在这里，我们有两个选择。
+- _Building_（将 TypeScript 文件编译为 JavaScript 文件）：在这里，我们有两个选择。
   - 我们可以通过命令行运行构建工具。例如，TypeScript 编译器 `tsc` 有 `--watch` 模式，该模式可以监视输入文件，并在更改文件时将其编译为输出文件。这样，每当我们在 IDE 中保存 TypeScript 文件时，都会立即获得相应的输出文件。
   - 我们可以在 Visual Studio Code 中运行 `tsc`。为此，必须将其安装在我们当前正在开发的项目内部或进行全局安装（通过 Node.js 包管理器 npm）。
 
@@ -67,7 +67,7 @@ TS 是不是银弹，我们不得而知，但是学好并用好 TS，一定对�
 
 给定 TypeScript 文件 `main.ts`，TypeScript 编译器可以产生几种工件。最常见的是：
 
-- JavaScript文件：`main.js`
+- JavaScript 文件：`main.js`
 - 声明文件：`main.d.ts`（包含类型信息）
 - 源码映射文件：`main.js.map`
 
@@ -184,11 +184,11 @@ function add(x, y) {
 }
 ```
 
-详细信息：《 TypeScript手册》中的 [Type-Checking JavaScript Files](https://www.typescriptlang.org/docs/handbook/type-checking-javascript-files.html)。
+详细信息：《 TypeScript 手册》中的 [Type-Checking JavaScript Files](https://www.typescriptlang.org/docs/handbook/type-checking-javascript-files.html)。
 
 ### 关于打包
 
-npm 注册表是一个巨大的 JavaScript 代码库。如果要使用 TypeScript 中的 JavaScript包，则需要类型信息：
+npm 注册表是一个巨大的 JavaScript 代码库。如果要使用 TypeScript 中的 JavaScript 包，则需要类型信息：
 
 - 软件包本身可能包含 `.d.ts` 文件，甚至完整的 TypeScript 代码。
 - 如果没有，我们仍然可以使用它：[DefinitelyTyped](https://definitelytyped.org/)是人们为普通 JavaScript 包编写的声明文件的库。

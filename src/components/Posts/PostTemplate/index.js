@@ -208,7 +208,6 @@ class PostTemplate extends React.Component {
       },
       hr: () => <Hr widthInPercent="100" verticalMargin="0.8rem" />,
       pre: (props) => {
-        console.log("pre here")
         const preProps = preToCodeBlock(props)
         if (preProps) {
           return <Code {...preProps} />
@@ -445,6 +444,7 @@ const StyledHTML = styled.div`
 
   img {
     margin: 0.35rem 0;
+    max-width: 100%;
   }
 
   .gatsby-resp-image-wrapper {
