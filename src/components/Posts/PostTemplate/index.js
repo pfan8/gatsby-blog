@@ -211,13 +211,6 @@ class PostTemplate extends React.Component {
           </li>
         )
       },
-      "ol.li": ({ children }) => {
-        return (
-          <li>
-            <span>{children}</span>
-          </li>
-        )
-      },
       hr: () => <Hr widthInPercent="100" verticalMargin="0.8rem" />,
       pre: (props) => {
         const preProps = preToCodeBlock(props)
