@@ -1113,6 +1113,86 @@ type Mutable<T> = {
 
 </Primary>
 
+<Primary title="单例 => NameSpace/Module">
+
+## 单例 => NameSpace/Module
+
+ 【2020-04-13 更新】今天有这么一个需求，希望用 TS 实现单例模式，并且支持泛型 T 来定义类型。于是折腾半天实现如下代码：
+
+```typescript
+export class SingletonService<T> {
+    readonly type: T
+    readonly newable: new() => T
+    private instance: T
+
+    constructor(newable: new() => T) {
+      this.newable = newable;
+    }
+
+    getInstance(): T {
+      if(!this.instance) {
+        this.instance = new this.newable();
+      }
+      return this.instance; 
+    }
+}
+
+class myNumberClass {
+    num: number;
+
+    constructor() {
+        this.num = 0;
+    }
+
+    add() {
+        this.num++;
+    }
+}
+
+let myNumberSS = new SingletonService<myNumberClass>(myNumberClass)
+
+const ss: myNumberClass = myNumberSS.getInstance();
+
+console.log(ss.num)
+ss.add();
+console.log(ss.num)
+ss.add();
+
+const ss2: myNumberClass = myNumberSS.getInstance();
+console.log(ss2.num)
+```
+
+看上去没有问题，可是首先，instance 是可以改变的，因为 JS 是按引用传递，通过 getInstance 得到 instance 之后就任你操作了，并不安全，当然你可以通过 readonly 指定，并在 constructor 里面给它赋值，不过这样也不够。
+
+因为关键问题是：
+
+**TS 并没有静态类的机制来支持我们做单例，这本身就是反范式的**，例如上面 ss 和 ss2 其实都是通过 myNumberSS 得到，那如果我们又声明了一个 myNumberSS2 ？岂不是又不符合单例的原则了，而且说实话`new SingletonService<myNumberClass>(myNumberClass)` 这种 code 我也是看吐了，但是又没更好的办法，因为泛型里的类型是 TS 指定的，跟实例无关，所以我拿不到构造函数，最理想的写法是
+`new SingletonService<myNumberClass>()`，但并做不到，并且还有上面说的问题，所以用 TS 泛型写单例就是 GG
+
+在网上搜索求助半天，最后了解到原来对于这个需求，在 TS 中应当考虑用 namespace 命名空间或者 module 模块，ES Module 是很熟悉了，那 namespace 呢？ 其实也是相当于在 JS 中定义了自己的一个私有作用域，内部的变量和函数都是私有的，对外不可见的，只有通过 `export` 才能暴露给外部，是不是很像闭包的定义！我去查了一下，虽然没有官方明确指出，但八九不离十，大家也都认为 namespace 就是通过闭包实现的，由于 namespace 绑定在全局作用域上，从而实现了”单例“的效果！
+
+- namespace vs module
+
+但是又看[深入浅出 typescript](https://jkchao.github.io/typescript-book-chinese/tips/singletonPatern.html)里说
+
+> 对大部分使用者来说，`namespace` 可以用模块来替代。
+
+？？？折腾半天等于 namespace 不推荐，阿西。又去查了一下，官网是这么说的：
+
+> Modules can contain both code and declarations.
+
+> Modules also have a dependency on a module loader (such as CommonJs/Require.js) or a runtime which supports ES Modules. Modules provide for better code reuse, stronger isolation and better tooling support for bundling.
+
+> It is also worth noting that, for Node.js applications, modules are the default and we recommended modules over namespaces in modern code.
+
+> Starting with ECMAScript 2015, modules are native part of the language, and should be supported by all compliant engine implementations. Thus, for new projects modules would be the recommended code organization mechanism.
+
+也就是说，模块提供了比较好的特性，支持 CommonJS 加载，是 nodejs 默认模块方式，所以建议在 ES6 之后的代码中使用 module 而非 namespace。alright，所以折腾半天，最后还是用 import 和 export，[呵呵]
+
+关于模块化相关知识（包括 AMD，CMD 等），还没系统学习整理，之后学到了再另起一篇，这里就不再赘述
+
+</Primary>
+
 <Warning title="参考连接">
 
 ## 参考连接
