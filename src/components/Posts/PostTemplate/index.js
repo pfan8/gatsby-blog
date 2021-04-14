@@ -69,7 +69,11 @@ class PostTemplate extends React.Component {
 
   // refer https://codepen.io/electerious/pen/GzrmwB, but not work for now
   listenTOC() {
-    document.querySelector(".table-of-contents").onmousemove = (e) => {
+    const toc = document.querySelector(".table-of-contents");
+    if(!toc) {
+      return;
+    }
+    toc.onmousemove = (e) => {
       const x = e.pageX - e.target.offsetLeft
       const y = e.pageY - e.target.offsetTop
 
