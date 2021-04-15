@@ -45,7 +45,7 @@ node --v8-options
 
 然后我们会在命令行窗口中看到大量关于 V8 的选项，这里我们暂且只关注图中红色选框中的几个选项：
 
-![](https://user-gold-cdn.xitu.io/2019/12/7/16edeb6f141feaac?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/hypdYMsu.jpg?0415)
 
 ```
 // 设置新生代内存中单个半空间的内存最小值，单位MB
@@ -60,7 +60,7 @@ node --max-old-space-size=2048 xxx.js
 
 通过以上方法便可以手动放宽 V8 引擎所使用的内存限制，同时 node 也为我们提供了`process.memoryUsage()`方法来让我们可以查看当前 node 进程所占用的实际内存大小。
 
-![](https://user-gold-cdn.xitu.io/2019/12/7/16edf18bb16af64d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/GbZTsHno.jpg?0415)
 
 在上图中，包含的几个字段的含义分别如下所示，单位均为字节：
 
@@ -89,7 +89,7 @@ V8 的垃圾回收策略主要是基于**分代式垃圾回收机制**，其根�
 
 内存结构图如下所示：
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee12280b78399d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/pAJEjAFz.jpg?0415)
 
 上图中的带斜纹的区域代表暂未使用的内存，新生代(new_space)被划分为了两个部分，其中一部分叫做 inactive new space，表示暂未激活的内存区域，另一部分为激活状态，为什么会划分为两个部分呢，在下一小节我们会讲到。
 
@@ -104,42 +104,42 @@ V8 的垃圾回收策略主要是基于**分代式垃圾回收机制**，其根�
 
 - 假设我们在 `From` 空间中分配了三个对象 A、B、C
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee172cf1a23c9a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/QdRksaDt.jpg?0415)
 
 - 当程序主线程任务第一次执行完毕后进入垃圾回收时，发现对象 A 已经没有其他引用，则表示可以对其进行回收
-  ![](https://user-gold-cdn.xitu.io/2019/12/8/16ee17a2fda2c461?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+  ![](https://thumbsnap.com/i/BpnSfJFQ.jpg?0415)
 
 - 对象 B 和对象 C 此时依旧处于活跃状态，因此会被复制到 To 空间中进行保存
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee17decd1d9ed2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/yUSPDT6v.jpg?0415)
 
 - 接下来将 From 空间中的所有非存活对象全部清除
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee1819dd9f5999?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/veRpG73f.jpg?0415)
 
 - 此时 From 空间中的内存已经清空，开始和 `To` 空间完成一次角色互换
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee18439a76a3eb?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/4NAvKtvR.jpg?0415)
 
 - 当程序主线程在执行第二个任务时，在 From 空间中分配了一个新对象 D
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee1874b4c441d2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/K4rAMpg9.jpg?0415)
 
 - 任务执行完毕后再次进入垃圾回收，发现对象 D 已经没有其他引用，表示可以对其进行回收
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee18969e114bc7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/SVRmeEih.jpg?0415)
 
 - 对象 B 和对象 C 此时依旧处于活跃状态，再次被复制到 `To` 空间中进行保存
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee18cd2bff353c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/Urbnn5Gq.jpg?0415)
 
 - 再次将 `From` 空间中的所有非存活对象全部清除
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee18f4a21c517e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/PctzTtXR.jpg?0415)
 
 - `From` 空间和 `To` 空间继续完成一次角色互换
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee191560b716c7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/VLx2HdDr.jpg?0415)
 
 通过以上的流程图，我们可以很清楚地看到，Scavenge 算法的垃圾回收过程主要就是将存活对象在 `From` 空间和 `To` 空间之间进行复制，同时完成两个空间之间的角色互换，因此该算法的缺点也比较明显，浪费了一半的内存用于复制。
 
@@ -153,11 +153,11 @@ V8 的垃圾回收策略主要是基于**分代式垃圾回收机制**，其根�
 
 默认情况下，我们创建的对象都会分配在 `From` 空间中，当进行垃圾回收时，在将对象从 `From` 空间复制到 `To` 空间之前，会先检查该对象的内存地址来判断是否已经经历过一次 `Scavenge` 算法，如果地址已经发生变动则会将该对象转移到老生代中，不会再被复制到 `To` 空间，可以用以下的流程图来表示：
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee3c5634e61f9e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/Yw8GSiXc.jpg?0415)
 
 如果对象没有经历过 `Scavenge` 算法，会被复制到 `To` 空间，但是如果此时 `To` 空间的内存占比已经超过 `25%`，则该对象依旧会被转移到老生代，如下图所示:
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee3c90fedad146?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/ZSAhW98o.jpg?0415)
 
 之所以有 `25%` 的内存限制是因为 `To` 空间在经历过一次 `Scavenge` 算法后会和 `From` 空间完成角色互换，会变为 `From` 空间，后续的内存分配都是在 `From` 空间中进行的，如果内存使用过高甚至溢出，则会影响后续对象的分配，因此超过这个限制之后对象会被直接转移到老生代来进行管理。
 
@@ -219,7 +219,7 @@ foo()
 > 2. 本地函数的局部变量和参数
 > 3. 当前嵌套调用链上的其他函数的变量和参数
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee468e85a1084d?imageslim)
+![](https://thumbsnap.com/i/tCdUzXEH.gif?0415)
 
 但是 `Mark-Sweep` 算法存在一个问题，就是在经历过一次标记清除后，内存空间可能会出现不连续的状态，因为我们所清理的对象的内存地址可能不是连续的，所以就会出现`内存碎片`的问题，导致后面如果需要分配一个大对象而空闲内存不足以分配，就会提前触发垃圾回收，而这次垃圾回收其实是没必要的，因为我们确实有很多空闲内存，只不过是不连续的。
 
@@ -227,19 +227,19 @@ foo()
 
 - 假设在老生代中有 A、B、C、D 四个对象
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee47d9f933bfc1?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/vR8prtog.jpg?0415)
 
 - 在垃圾回收的标记阶段，将对象 A 和对象 C 标记为活动的
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee486ece5fda42?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/t5WdPV1b.jpg?0415)
 
 - 在垃圾回收的整理阶段，将活动的对象往堆内存的一端移动
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee48f23fe98d7a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/AJd6vNdx.jpg?0415)
 
 - 在垃圾回收的清除阶段，将活动对象左侧的内存全部回收
 
-![](https://user-gold-cdn.xitu.io/2019/12/8/16ee490a8b9bf0af?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+![](https://thumbsnap.com/i/cGLKYTER.jpg?0415)
 
 至此就完成了一次老生代垃圾回收的全部过程，我们在前文中说过，由于 JS 的`单线程机制`，垃圾回收的过程会阻碍主线程同步任务的执行，待执行完垃圾回收后才会再次恢复执行主任务的逻辑，这种行为被称为全停顿`(stop-the-world)` 。在标记阶段同样会阻碍主线程的执行，一般来说，老生代会保存大量存活的对象，如果在标记阶段将整个堆内存遍历一遍，那么势必会造成严重的卡顿。
 
