@@ -1,0 +1,515 @@
+---
+title: CSS BFC+IFC 格式化上下文详解
+date: 2021-04-16
+tags: [CSS]
+excerpt: BFC,IFC,overflow,float,clear,inline,vertical-align...
+---
+
+<Info title="前言">
+
+格式化上下文，对于了解浏览器渲染DOM元素的规则很有帮助，相信平时你工作时也像我一样遇到过类似的问题：
+
+1. 有时候父元素 div 高度为 0，但是明明有子元素的，无法控高，设置 height 无效
+2. 使用内联布局的时候，即便使用了 `vertical-align：center`， 元素依然没有居中
+3. 对于 2，即便调整 `line-height` work了，也不知道为什么，莫名其妙，下次遇到问题也不知道该不该继续用
+
+而在学习掌握 BFC, IFC 之后，这些问题就会迎刃而解了
+
+</Info>
+
+<Primary title="BFC">
+
+### 一、基本概念：标准模型+IE模型
+
+盒模型：盒模型又称框模型（Box Model）,包含了元素内容（content）、内边距（padding）、边框（border）、外边距（margin）几个要素。如图：
+
+![](https://thumbsnap.com/i/ZbEJWJU1.png?0416)
+
+由于IE盒模型的怪异模式，IE模型和标准模型的内容计算方式不同。
+
+### 二、标准模型和IE模型的区别
+
+IE模型和标准模型唯一的区别是内容计算方式的不同
+
+IE模型元素宽度width=content+padding+border，高度计算相同，如下图
+
+![](https://thumbsnap.com/i/rAwXP7aN.png?0416)
+
+标准模型元素宽度width=content，高度计算相同，如下图
+
+![](https://thumbsnap.com/i/HExxBjyd.png?0416)
+
+### 三、css如何设置获取这两种模型的宽和高
+
+通过css3新增的属性 box-sizing: content-box | border-box分别设置盒模型为标准模型（content-box）和IE模型（border-box）。
+
+```CSS
+.content-box {
+  box-sizing:content-box;
+  width: 100px;
+  height: 50px;
+  padding: 10px;
+  border: 5px solid red;
+  margin: 15px;
+}
+```
+
+.content-box设置为标准模型，它的元素宽度width=100px。如下图
+
+![](https://thumbsnap.com/i/t72agF6Z.png?0416)
+
+```CSS
+.border-box {
+  box-sizing: border-box;
+  width: 100px;
+  height: 50px;
+  padding: 10px;
+  border: 5px solid red;
+  margin: 15px;
+}
+```
+
+.border-box设置为IE模型，它的元素宽度
+width=content + 2 * padding + 2 * border = 70px + 2 x10px + 2 x5px = 100px。
+
+![](https://thumbsnap.com/i/39FjxUor.png?0416)
+
+### 四、javascript如何设置获取盒模型对应的宽和高
+
+- dom.style.width/height 只能取到行内样式的宽和高，style标签中和link外链的样式取不到。
+- dom.currentStyle.width/height 取到的是最终渲染后的宽和高，只有IE支持此属性。
+- window.getComputedStyle(dom).width/height 同（2）但是多浏览器支持，IE9以上支持。
+- dom.getBoundingClientRect().width/height 也是得到渲染后的宽和高，大多浏览器支持。IE9以上支持，除此外还可以取到相对于视窗的上下左右的距离
+
+![](https://thumbsnap.com/i/TyRCVKoc.png?0416)
+
+### 五、外边距重叠
+
+当两个垂直外边距相遇时，他们将形成一个外边距，合并后的外边距高度等于两个发生合并的外边距的高度中的较大者。
+
+注意：只有普通文档流中块框的垂直外边距才会发生外边距合并，行内框、浮动框或绝对定位之间的外边距不会合并。
+
+![](https://thumbsnap.com/i/FchBNss5.png?0416)
+
+下面例子的父元素section的高度是多少?
+html结构如下
+
+```html
+<section id="sec">
+  <article class="child"></article>
+</section>
+```
+
+css样式如下
+
+```css
+* {
+  margin: 0;
+  padding: 0;
+}
+#sec {
+  background: #f00;
+}
+.child {
+  height: 100px;
+  margin-top: 10px;
+  background: yellow;
+}
+```
+
+这里父元素section的高度是多少呢，100px，
+
+![](https://thumbsnap.com/i/fF6PiW3e.png?0416)
+
+但是我们给section设置`overflow:hidden`后高度就变成110px，这是为什么呢，其实这里我们给父元素创建了`BFC`。什么是`BFC`,请看下面的介绍。
+
+![](https://thumbsnap.com/i/L98yGHTH.png?0416)
+
+### 六 、BFC
+
+在讲 `BFC` 之前，我们先来了解一下常见的定位方案，定位方案是控制元素的布局，有三种常见方案:
+
+- 普通流 (normal flow)
+
+> 在普通流中，元素按照其在 HTML中的先后位置至上而下布局，在这个过程中，行内元素水平排列，直到当行被占满然后换行，块级元素则会被渲染为完整的一个新行，除非另外指定，否则所有元素默认都是普通流定位，也可以说，普通流中元素的位置由该元素在HTML 文档中的位置决定。
+
+- 浮动 (float)
+
+> 在浮动布局中，元素首先按照普通流的位置出现，然后根据浮动的方向尽可能的向左边或右边偏移，其效果与印刷排版中的文本环绕相似。
+
+- 绝对定位 (absolute positioning)
+
+> 在绝对定位布局中，元素会整体脱离普通流，因此绝对定位元素不会对其兄弟元素造成影响，而元素具体的位置由绝对定位的坐标决定。
+
+**BFC(Block Formatting Context)：块级格式化上下文。**
+
+`BFC` 决定了元素如何对其内容进行定位，以及与其他元素的关系和相互作用。
+
+当涉及到可视化布局的时候，`BFC` 提供了一个环境，HTML元素在这个环境中按照一定的规则进行布局。一个`BFC` 环境中的元素不会影响到其他环境中的布局。
+
+#### BFC的原理（渲染规则）
+
+- BFC内的元素垂直方向的边距会发生重叠。属于不同BFC的元素外边距不会发生重叠
+- BFC的区域不会与浮动元素的布局重叠。
+- BFC元素是一个独立的容器，外面的元素不会影响里面的元素。里面的元素也不会影响外面的元素。
+- 计算BFC高度的时候，浮动元素也会参与计算(清除浮动)
+
+#### 如何创建BFC
+
+- `overflow` 不为 visible;
+- `float` 的值不为 none；
+- `position` 的值不为 static 或 relative；
+- `display` 属性为 inline-blocks,table,table-cell,table-caption,flex,inline-flex;
+
+实例如下
+
+```html
+<!-- html结构 -->
+<section id="margin">
+  <p>1</p>
+  <div style="overflow: hidden">
+    <p>2</p>
+  </div>
+  <p>3</p>
+  <p>4</p>
+</section>
+
+<!-- css样式-->
+<style>
+	* {
+	  padding: 0;
+	  margin: 0;
+	}
+	#margin {
+	  background: pink;
+	  overflow: hidden;
+	}
+	p {
+	  margin: 15px auto 25px;
+	  background: red;
+	}
+</style>
+```
+
+这里的第二个p元素<p>2</p>他被一个父元素包裹，并且父元素有 overflow:hidden 样式， overflow:hidden 可以创建一个BFC。结果如下图所示。
+
+![](https://thumbsnap.com/i/QX2Knjrv.png?0416)
+
+我们看这里的2，它的上下外边距都没有与1和3发生重叠，但3与4外边距发生了重叠。
+
+这就解释了 `BFC` 创建了一个独立的环境，这个环境中的元素不会影响到其他环境中的布局，所以 `BFC` 内的元素外边距不与外部的元素外边距发生重叠。
+
+假如给有 `overflow:hidden` 样式的 `div` 添加 `margin-bottom:30px` ，会与 `div` 下面的`P` 元素重叠，如下图
+
+![](https://thumbsnap.com/i/hTZuBJei.png?0416)
+
+再看看下面的列子：
+
+```html
+<!-- html结构 -->
+<section id="layout">
+  <div class="left"></div>
+  <div class="right">我是.right元素里的文本信息</div>
+</section>
+<!-- css样式-->
+<style>
+	#layout {
+	  background: red;
+	}
+	#layout .left {
+	  float: left;
+	  width: 100px;
+	  height: 100px;
+	  background: pink;
+	}
+	#layout .right {
+	  height: 110px;
+	  background: #ccc;
+	}
+</style>
+```
+
+效果如下
+
+![](https://thumbsnap.com/i/RMmFcDSw.png?0416)
+
+写过前端页面的我们肯定遇到过这种情况，这里其实是浮动元素叠在 .right 元素的上方
+
+PS:.right元素里文本信息不会被浮动元素所覆盖
+
+如果我们想让.right元素不会延伸到 float元素怎么办，其实我们在.right元素上加 overflow:hidden （用其他的方式创建BFC也可以）创建BFC就可以解决。因为BFC不会与浮动元素发生重叠。
+
+![](https://thumbsnap.com/i/kxH4Mdk5.png?0416)
+
+还有一种情况很常见，就是由于子元素浮动，导致父元素的高度不会把浮动元素算在内，那么我们在父元素创建BFC就可以让可以让浮动元素也参与高度计算。
+
+```html
+<!-- html结构 -->
+<section id="layout">
+  <div class="child"></div>
+</section>
+<!-- css样式-->
+<style>
+	#layout {
+	  background: red;
+	}
+	#layout .child{
+	  float: left;
+	  width: 100%;
+	  height: 100px;
+	  background: pink;
+	}
+</style>
+```
+
+效果如下，.layout高度为0
+
+![](https://thumbsnap.com/i/5JrPjBd7.png?0416)
+
+给父元素添加overflow:hidden，将其变成BFC后，计算高度就会把浮动的子元素高度一起算上
+
+![](https://thumbsnap.com/i/77ocpWZq.png?0416)
+
+</Primary>
+
+<Primary title="IFC">
+
+`IFC: Inline Formatting Contexts`，也就是“内联格式化上下文”。
+
+符合以下任一条件即会生成一个 `IFC`
+
+- 块级元素中仅包含内联级别元素
+
+形成条件非常简单，需要注意的是当 `IFC` 中有块级元素插入时，会产生两个匿名块将父元素分割开来，产生两个 `IFC` ，这里不做过多介绍。
+
+`IFC` 布局规则
+
+- 子元素水平方向横向排列，并且垂直方向起点为元素顶部。
+- 子元素只会计算横向样式空间，【padding、border、margin】，垂直方向样式空间不会被计算，【padding、border、margin】。
+- 在垂直方向上，子元素会以不同形式来对齐（vertical-align）
+- 能把在一行上的框都完全包含进去的一个矩形区域，被称为该行的行框（line box）。行框的宽度是由包含块（containing box）和与其中的浮动来决定。
+- IFC中的“line box”一般左右边贴紧其包含块，但float元素会优先排列。
+- IFC中的“line box”高度由 CSS 行高计算规则来确定，同个IFC下的多个line box高度可能会不同。
+- 当 inline-level boxes的总宽度少于包含它们的line box时，其水平渲染规则由 text-align 属性值来决定。
+- 当一个“inline box”超过父元素的宽度时，它会被分割成多个boxes，这些 oxes 分布在多个“line box”中。如果子元素未设置强制换行的情况下，“inline box”将不可被分割，将会溢出父元素。
+
+相比较于BFC，IFC的规则噼里啪啦一大堆，很少有人会耐心看下去，举几个例子，花几分钟就可以大概明白其特性。
+
+1. 很多时候，上下间距不生效可以使用IFC来解释
+
+```css
+.warp { border: 1px solid red; display: inline-block; }
+.text { margin: 20px; background: green; }
+```
+
+```html
+<div class="warp">
+    <span class="text">文本一</span>
+    <span class="text">文本二</span>
+</div>
+```
+
+![](https://thumbsnap.com/i/9ZostzDS.png?0416)
+
+左右 `margin` 撑开，上下 `margin` 并未撑开，符合 `IFC` 规范，只计算横向样式控件，不计算纵向样式空间。
+
+2. 多个元素水平居中
+
+```css
+.warp { border: 1px solid red; width: 200px; text-align: center; }
+.text { background: green; }
+```
+```html
+<div class="warp">
+    <span class="text">文本一</span>
+    <span class="text">文本二</span>
+</div>
+```
+
+![](https://thumbsnap.com/i/wxMAnWL3.png?0416)
+
+水平排列规则根据 `IFC` 容器的 `text-align` 值来排列，可以用来实现多个子元素的水平居中。
+
+3. float元素优先排列
+
+```css
+.warp { border: 1px solid red; width: 200px; }
+.text { background: green; }
+.f-l { float: left; }
+```
+
+```html
+<div class="warp">
+    <span class="text">这是文本1</span>
+    <span class="text">这是文本2</span>
+    <span class="text f-l">这是文本3</span>
+    <span class="text">这是文本4</span>
+</div>
+```
+
+![](https://thumbsnap.com/i/562RUGBj.png?0416)
+
+`IFC` 中具备 `float` 属性值的元素优先排列，在很多场景中用来在文章段落开头添加“tag”可以用到。
+
+</Primary>
+
+<Success title="IFC 中的 vertical-align 和 line-height">
+
+在实际项目中，`line-height` 和 `vertical-align` 是使用频率非常高的两个 CSS 属性。其中line-height用于指定文字的行高，`vertical-align` 用于指定元素的垂直方向对其方式。但是，我们常常在应用两个属性的过程中，遇到许多预想不到的结果，比如使用 `vertical-align:middile` 不能实现垂直居中（ `vertical-align` 无效这个问题是高频提问的问题）。这两个属性关系非常密切，随时随地都存在它们共同作用的结果，要使用好这两个属性，只有深入的理解了他们的作用机理，才能解决实际使用过程中遇到的种种疑惑。
+
+初学者使用 `vertical-align` 属性时，经常会发现最终的表现结果并不能如愿，“ `vertical-align` 无效”也是CSS问题里搜索频率比较高的一个。大部分是因为对于该属性理解不够透彻引起的，只有理解了该属性的特点，表现行为以及与其他属性（如 `line-height` ）的共同作用机制和效果，才能很好的解决 `vertical-align` 带来的一些问题，并有效的利用它。
+
+### 1. 起作用的前提
+
+`vertical-align` 起作用的前提是元素为 `inline` 水平元素或 `table-cell` 元素，包括 `span, img, input, button, td` 以及通过 `display` 改变了显示水平为 `inline` 水平或者`table-cell`的元素。这也意味着，默认情况下，`div, p` 等元素设置 `vertical-align` 无效。
+
+
+### 2. 取值
+
+`vertical-align` 可以有以下取值方式：
+
+（1）关键字： 如 top, middle, baseline(默认值), bottom, super, sub, text-bottom, text-top
+
+（2）长度值： 如10px，-10px(均为相对于baseline偏移)
+
+（3）百分比值： 如10%，根据line-height作为基数进行计算(重要)后的值。
+
+### 3. 各种属性设置后的表现形式
+
+平时，我们用得最多的应该是 top,bottom,middle,baseline 等几个关键字。而长度值等用得比较少。以下通过例子展示一下各个值的表现形式，并做解析。
+
+![](https://thumbsnap.com/i/sz7Tfvzf.jpg?0416)
+
+以上所有外层标签的行高为 50px ,背景为灰色，所有的对齐方式为对图片进行设置,红色背景文字为图片的兄弟标签 span 。通过观察我们可以看到，各个属性值的表现如下：
+
+（1）baseline： 默认的对齐方式，基线对齐，与父元素的基线对齐；
+
+（2）top： 与行中的最高元素的顶端对齐，一般是父级元素的最顶端对齐；
+
+（3）middle： 与父元素中线对齐（近似垂直居中）；
+
+（4）bottom： 与 top 相反，与父级元素的最低端对齐 ；
+
+（5）text-top： 与父级元素 content area 的顶端对齐，不受行高以及周边其他元素的影响。（如图，由于行高为50，但为了保证与 content area 顶部对齐，故图片上面有空隙，可以与 top 进行对比）；
+
+（6）text-bottom： 与 text-top 相反，始终与父级元素 content area 的低端对齐。同理可以与 bottom 进行对比区分。注意，从图中可以看到，貌似该值的表现行为与 baseline 一致，但仔细观察，可以看到，实际上 text-bottom 所在的线会比 baseline 低一点。
+
+（7）数值与百分比： 当数值为正值时，对齐方式将以基线为基准，往上偏移响应的大小，当为负值时，往下偏移。而百分比则是根据行高的大小，计算出响应的数值，再以数值表现的方式进行偏移。（百分比根据行高计算偏移值这一点很重要，对后面讲解的一些奇怪的现象可以做出解释并找到解决的办法）。
+
+（8）super 与 sub： 这两个值均是找到合适的基线作为对齐的基线进行对齐，类似 super 标签和 sub 标签,但不缩放字体大小。
+
+## line-height 与 vertical-align的密切关系与应用
+
+咋一看，我们很难看到这两个属性之间的关系，但是实际上，这两个属性的关系非常密切，而且无处不在。引用张鑫旭的话讲就是“令人发指的断背基友关系”。我们在处理内联元素的对齐，排列等，很多令人捉摸不透的奇怪现象都和 `vertical-align` 和 `line-height` 之间有很大的关系，基本上都能从它们身上找到原因和解决办法。
+
+
+### 1. 几个定义
+
+在讲两个属性之间的关系和应用之前，先来了解几个定义。
+
+
+（1）`inline-block` 基线： 在CSS2可视化格式模型文档中，指出了 `inline-block` 的基线是正常流中最后一个 `line box` 的基线，但是，如果这个 `line box` 里面没有 `inline boxes` 或者其`overflow` 属性值不是 `visible` ，那么其基线就是 `margin bottom` 的边缘。什么意思呢？我们用一张图片说明一下：
+纠正：图片上面描述文字中的“红色线为设置了middle”改为“黄色线为设置了middle”
+
+![](https://thumbsnap.com/i/jDfJBKDL.jpg?0416)
+
+(2) middle对齐： 指元素的垂直中心线与父级基线往上二分之一X所在的位置的线对齐。有点绕，看下图：
+
+![](https://thumbsnap.com/i/GNbYPkcg.jpg?0416)
+
+（3）文字下沉特性： 文字是具有下沉特性的，就是文字的垂直中心点在文字所在区域的中线往下沉一点，不同字体的文字下沉的幅度不同，同时，文字大小越大，下沉越明显。如上图，X的中线点相对白色中线往下沉。
+
+### 2. 几个现象
+
+我们先通过例子来看看几个现象。
+
+```html
+<div class="wrap">
+  <img src="xxx.png" />
+</div>
+<div class="wrap">
+  <span></span>
+  <span>我有内容</span>
+</div>
+<div class="wrap" style="height:200px;">
+  <img src="xxx.png" class="middle" />
+</div>
+```
+
+```css
+.wrap {
+  background: #249ff1;
+}
+span {
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+  border: 1px solid #f00;
+}
+img {
+  width: 100px;
+}
+.middle {
+  vertical-align: middle;
+}
+```
+
+以上代码最后结果如下:
+
+![](https://thumbsnap.com/i/s9DG1j13.jpg?0416)
+
+我们发现，放在div里面的图片，在底部会多出一点空白间隙，而第二个例子两个样式一样的 `span` ，一个有文字一个没有文字，我们的意愿是想让两个 `span` 并排显示，但结果错位十分严重。至于第三个例子，图片设置了居中对齐，但似乎没有生效。那究竟空白间隙从何而来？为什么两个 `span` 会错位？图片确实是没有居中对齐吗？要解释清楚这个现象，必须弄清楚 `vertical-align` 和 `line-height` 之间的关系。我们从第一个例子开始，一步一步的分析。
+
+首先，通过前面两个属性的表现特点分析我们知道，元素默认情况下的对齐方式是基线对齐，即 `baseline` 。而在浏览器中，都有默认的字体的大小，这个空隙就是来源于这两个。为了便于我们观察，我们把 `wrap` 的行高设置为一个相对大的值，在这里我们设置为 `50px`。设置后表现如下：
+
+![](https://thumbsnap.com/i/gsaJGFdT.jpg?0416)
+
+可以看到，此时图片底部的空白间隙变得更大。实际上，在 `wrap` 里面虽然只有一个 `img` 标签，但其实存在一个我们看不见的空白节点。这个特殊的空白节点与普通文节点一样，具有文字大小，行高。因此，我们可以利用普通文本来代替这个节点来观察现象。我们在图片的后面输入一串XXX。如下：
+
+![](https://thumbsnap.com/i/37JZsjjU.jpg?0416)
+
+接着，我们再用一个 `inline-block` 化的 span 标签将文字包裹并设置文字背景色。如下：
+
+![](https://thumbsnap.com/i/BaBmx6To.jpg?0416)
+
+经过以上两步改变，我们发现，图片的位置没有发生任何的变化，底部的间隙大小也没有变化。此时，已经足以解释为什么只有一个img标签的情况下，图片底部会出现间隙：由于空白节点的存在，图片后面相当于跟了一个文本节点。而默认情况下，图片的对齐方式是以父级元素的基线对齐，为了保持与基线对齐，图片底部必须留出间隙，大小为上面提到的半倍文本间距[即 `(line-height - font-size) / 2` ]。而且 `line-height` 的值越大，间隙将越大。到此为止，结合我们上面对属性值特点的一些分析，要找到问题的解决办法就变得相当简单了。要去除图片底部的间隙，只需要将 `line-height` 和 `vetical-align` 属性的其中一个给干掉就可以了。可以有以下几种方法：
+
+（1）将图片设置为 `display:block`（利用 `vertical-align` 的生效前提）；
+
+（2）将 `ertical-align` 设置为 top，bottom，或者 middle 等值（利用属性值的表现行为）；
+
+（3）将 `line-height` 设置为 `0`（利用line-height为0时，基线上移）；
+
+（4）将 `font-size` 设置为 `0` （如果line-height的值为相对值，如1.5）；
+
+（5）将 `img` 设置浮动或者绝对定位（如果布局允许的话）
+
+现在，利用第二种方法，将 `vertical-align` 设置我 bottom，设置后结果如下：
+
+![](https://thumbsnap.com/i/VaoTLEDa.jpg?0416)
+
+第二个例子，由前面的对于 `inline-block` 基线的定义可知，对于有内容的 `inline-block` ，其基线为最后一行文本基线所在的位置，而对于空白的 `inline-block` ，其基线为 `margin bottom` 边缘所在位置，即底部边缘。因为默认情况下为基线对齐，这两条基线对齐后就形成了上图那种错位的现象。知道了错位的原因，要解决也方便了。我们仅需将对齐方式设置为 bottom，middle，top 等值就可以了。现在设置为 middle。效果如下：
+
+![](https://thumbsnap.com/i/3D6tCCq6.jpg?0416)
+
+至于第三个例子，有点让人摸不着头脑，这也是 `vertical-align` 无效被提问的最多的一种现象。按照 `vertical-align` 生效个条件可知，给 `img` 设置 `middle` 对齐后理论上应该是居中对齐才对，但为什么没有起作用呢？是真的没有起作用吗？答案是：起作用了。实际上，`vertical-align:middle` 是起作用的了，但至于最后图片为什么没有在父级里面垂直居中，是因为后面的空白节点高度不足，导致基线偏上。按照中线的定义，中线也是偏上。我们可以用一个字母x代替后面的空白节点，来观察现象。
+
+![](https://thumbsnap.com/i/Ba7i7CmC.jpg?0416)
+
+从图中可以看到，实际上图片与文字确实是垂直居中对齐了。我们给父级的行高设置为父级的高度，从而使基线往下偏移。效果如下：
+
+![](https://thumbsnap.com/i/HZAiwxz7.jpg?0416)
+
+此时，我们可以看到，图片“近似”垂直居中在了父级元素。这是因为设置行高后，根据之前分析的`line-height` 等于 `font-size` + `2倍的文字上下间距` 可知，父级基线往下。中线为基线往上二分之一x高度，此时图片的中线就与后面的x中线点对齐，实现了近似垂直居中的效果。
+
+至此，我们终于分析清楚 `IFC` 中 `vertical-align` 的工作原理以及如何结合 `line-height` 进行使用了
+
+</Success>
+
+<Warning title="参考连接">
+
+1. [CSS盒模型完整介绍](https://blog.csdn.net/weixin_42752574/article/details/114477353)
+2. [CSS之IFC](https://segmentfault.com/a/1190000017273573)
+3. [彻底搞定vertical-align垂直居中不起作用疑难杂症](https://juejin.cn/post/6844903561780789255)
+
+</Warning>
