@@ -1,0 +1,454 @@
+---
+title: 进程、线程、协程简介
+date: 2021-04-21
+tags: [IT-OS]
+excerpt: 进程，线程，IPC，协程，信号量……
+---
+
+<Info title="Intro">
+
+## 进程
+
+进程是表示资源分配的基本单位，又是调度运行的基本单位。例如，用户运行自己的程序，系统就创建一个进程，并为它分配资源，包括各种表格、内存空间、磁盘空间、I/O 设备等。然后，把该进程放人进程的就绪队列。进程调度程序选中它，为它分配 CPU 以及其它有关资源，该进程才真正运行。所以，进程是系统中的并发执行的单位。
+
+在 Mac、Windows NT 等采用微内核结构的操作系统中，进程的功能发生了变化：它只是资源分配的单位，而不再是调度运行的单位。在微内核系统中，真正调度运行的基本单位是线程。因此，实现并发功能的单位是线程。
+
+## 线程
+
+线程是进程中执行运算的最小单位，亦即执行处理机调度的基本单位。如果把进程理解为在逻辑上操作系统所完成的任务，那么线程表示完成该任务的许多可能的子任务之一。例如，假设用户启动了一个窗口中的数据库应用程序，操作系统就将对数据库的调用表示为一个进程。假设用户要从数据库中产生一份工资单报表，并传到一个文件中，这是一个子任务；在产生工资单报表的过程中，用户又可以输人数据库查询请求，这又是一个子任务。这样，操作系统则把每一个请求――工资单报表和新输人的数据查询表示为数据库进程中的独立的线程。线程可以在处理器上独立调度执行，这样，在多处理器环境下就允许几个线程各自在单独处理器上进行。操作系统提供线程就是为了方便而有效地实现这种并发性。
+
+举个例子来说多线程就像是火车上的每节车厢，而进程就是火车。
+
+## 协程
+
+一句话定义协程：**协程是一种轻量级的用户态线程**。
+
+协程的调度完全由用户来控制。协程拥有自己的寄存器上下文和执行栈，在切换的时候保存当前的上下文环境，在此切换回来的时候回复上下文现场，继续执行之前协程执行的任务。
+
+简要对比**进程、线程和协程**之间的区别联系：
+
+- 进程：隔离变量，自动切换上下文
+- 线程：不隔离变量，自动切换上下文
+- 协程：不隔离变量，不自动切换上下文
+
+</Info>
+
+<Primary title="进程、线程">
+
+## 多进程和多线程的区别？
+
+我们从各个方面来看待这个问题，由下面的图片说明：
+
+![](https://thumbsnap.com/i/eRN1hWzA.jpg?0421)
+
+## 进程之间的通信方式以及优缺点？
+
+### 1. 管道
+
+管道分为有名管道和无名管道
+
+无名管道是一种半双工的通信方式,数据只能单向流动,而且只能在具有亲缘关系的进程间使用.进程的亲缘关系一般指的是父子关系。无明管道一般用于两个不同进程之间的通信。当一个进程创建了一个管道,并调用 fork 创建自己的一个子进程后,父进程关闭读管道端,子进程关闭写管道端,这样提供了两个进程之间数据流动的一种方式。
+
+有名管道也是一种半双工的通信方式,但是它允许无亲缘关系进程间的通信。
+
+**无名管道**：
+
+优点：简单方便；
+
+缺点：
+
+1）局限于单向通信
+
+2）只能创建在它的进程以及其有亲缘关系的进程之间;
+
+3）缓冲区有限；
+
+**有名管道**：
+
+优点：可以实现任意关系的进程间的通信；
+
+缺点：
+
+1）长期存于系统中，使用不当容易出错；
+
+2）缓冲区有限
+
+### 2. 信号量
+
+信号量是一个计数器,可以用来控制多个线程对共享资源的访问.,它不是用于交换大批数据,而用于多线程之间的同步.它常作为一种锁机制,防止某进程在访问资源时其它进程也访问该资源.因此,主要作为进程间以及同一个进程内不同线程之间的同步手段.
+
+优点：可以同步进程；
+
+缺点：信号量有限
+
+### 3. 信号
+
+信号是一种比较复杂的通信方式,用于通知接收进程某个事件已经发生.
+
+### 4. 消息队列
+
+消息队列是消息的链表,存放在内核中并由消息队列标识符标识.消息队列克服了`信号传递信息少`,管道只能承载`无格式字节流`以及`缓冲区大小受限`等特点.消息队列是 UNIX 下不同进程之间可实现共享资源的一种机制,UNIX 允许不同进程将格式化的数据流以消息队列形式发送给任意进程.对消息队列具有操作权限的进程都可以使用 msget 完成对消息队列的操作控制.通过使用消息类型,进程可以按任何顺序读信息,或为消息安排优先级顺序.
+
+优点：可以实现任意进程间的通信，并通过系统调用函数来实现消息发送和接收之间的同步，无需考虑同步问题，方便；
+
+缺点：信息的复制需要额外消耗 CPU 的时间，不适宜于信息量大或操作频繁的场合
+
+### 5. 共享内存
+
+共享内存就是映射一段能被其他进程所访问的内存,这段共享内存由一个进程创建,但多个进程都可以访问.共享内存是最快的 IPC(进程间通信)方式,它是针对其它进程间通信方式运行效率低而专门设计的.它往往与其他通信机制,如信号量,配合使用,来实现进程间的同步与通信.
+
+优点：无须复制，快捷，信息量大；
+
+缺点：
+
+1）通信是通过将共无法实现享空间缓冲区直接附加到进程的虚拟地址空间中来实现的，因此进程间的读写操作的同步问题；
+
+2) 利用内存缓冲区直接交换信息，内存的实体存在于计算机中，只能同一个计算机系统中的诸多进程共享，不方便网络通信
+
+### 6. 套接字：可用于不同及其间的进程通信
+
+优点：
+
+1）传输数据为字节级，传输数据可自定义，数据量小效率高；
+
+2）传输数据时间短，性能高； 
+
+3) 适合于客户端和服务器端之间信息实时交互； 
+
+4) 可以加密,数据安全性强
+
+缺点：
+
+1) 需对传输的数据进行解析，转化成应用级的数据。
+
+## 线程之间的通信方式？
+
+### 1. 锁机制：包括互斥锁、条件变量、读写锁
+
+- **互斥锁**提供了以排他方式防止数据结构被并发修改的方法。
+
+- **读写锁**允许多个线程同时读共享数据，而对写操作是互斥的。
+
+- **条件变量**可以以原子的方式阻塞进程，直到某个特定条件为真为止。对条件的测试是在互斥锁的保护下进行的。条件变量始终与互斥锁一起使用。
+
+### 2. 信号量机制(Semaphore)：包括无名线程信号量和命名线程信号量
+
+- **信号机制(Signal)**：类似进程间的信号处理
+
+线程间的通信目的主要是用于线程同步，所以线程没有像进程通信中的用于数据交换的通信机制。
+
+</Primary>
+
+<Success title="Node 中的协程">
+
+Node.js 是单线程么？是，也不是~
+
+![](https://thumbsnap.com/i/3vqr8erZ.png?0421)
+
+Node.js 使用事件驱动及非阻塞 I/O 实现异步模型
+
+> Node.js is a platform built on Chrome's JavaScript runtime for easily building fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model that makes it lightweight and efficient, perfect for data-intensive real-time applications that run across distributed devices.
+
+APPLICATION 为我们所编写的应用层，其 JS 的解释执行由 V8 引擎负责，这里的执行线程只有一个，这也就是通常所说 Node.js 为单线程的原因，在编写 Node.js 程序时没有办法创建子线程，同时如果有部分逻辑阻塞或者长时间运行，则会影响整个运行时
+
+Node.js 的高并发则依赖事件驱动（EVENT LOOP）及非阻塞 I/O（LIBUV），在进行 I/O 操作时 Node.js 将任务交由`UV线程池`中的线程执行，并在事件队列中注册回调，在 I/O 操作完成时触发回调继续后续的动作，在整个 I/O 操作的过程中并不会阻塞 JS 的解释执行
+
+- Node.js 的 JavaScript 解释执行只有一个线程，阻塞或长时运行的逻辑会影响整个应用层的运行
+- I/O 操作交由`UV线程池`处理（通过 addones 也可以将 CPU 密集型的计算逻辑放到 LIBUV 线程池中执行），通过事件机制回调将结果返回给应用层处理
+
+Node.js 的工作线程数固定（可通过环境变量 `UV_THREADPOOL_SIZE` 指定），每个工作线程对应一个内核线程，工作线程数可以理解为 `N:M` 线程模型中的 `M`
+
+Node.js 应用层的异步任务由开发人员编写，每个异步任务可以理解为用户线程，任务数对应于 `N:M` 线程模型中的 `N`
+
+由于 Node.js 上述的特点（单执行线程，多工作线程），没有过多的干扰，非常适合用来讲述协程的概念及应用
+
+## Geneartor
+
+子程序（或者称为函数），在所有语言中都是层级调用，严格遵循线程栈的入栈出栈，子程序调用总是一个入口一个返回，调用顺序是明确的
+
+而协程的调用和子程序不同，协程看上去也是子程序，但执行过程中协程内部可中断，然后转而执行别的子程序/协程，在适当的时候再返回来接着执行
+
+generator 函数是 ES6 提供的一种异步编程解决方案，语法行为与传统函数完全不同
+
+```javascript
+function* helloGenerator() {
+  yield console.log("hello")
+  yield console.log("I'm")
+}
+
+function* worldGenerator() {
+  yield console.log("world")
+  yield console.log("ManerFan")
+}
+
+let hello = helloGenerator()
+let world = worldGenerator()
+
+// 交替执行helloGenerator及worldGenerator
+hello.next()
+world.next()
+hello.next()
+world.next()
+```
+
+运行结果
+
+```
+hello
+world
+I'm
+ManerFan
+```
+
+按照常理，在同一个线程中顺序调用 `helloGenerator` 及 `worldGenerator` ，两个函数均会按照调用顺序完整的执行，按预期应该输出
+
+```
+hello
+I'm
+world
+ManerFan
+```
+
+在使用 `generator` 时，其 `next` 方法会在方法体内遇到 `yield` 关键字时暂停执行，交回该函数的执行权，类似于线程的挂起，因此 `generator` 也被称之为暂停函数
+
+![](https://thumbsnap.com/i/GDNGVQrb.png?0421)
+
+generator 函数可以在内部使用 yield 关键字标识暂停点，generator 函数的暂停、恢复执行可由应用程序灵活控制（内核线程的调度由系统控制），这与传统函数的执行规则完全不同，generator 函数的调度权完全交给了应用层
+
+yield 关键字除了标识暂停点之外，还可以在恢复执行的时候传值进来
+
+```javascript
+function* foo(x) {
+  var y = 2 * (yield x + 1)
+  var z = yield y / 3
+  return x + y + z
+}
+
+let f = foo(5)
+let step1 = f.next()
+console.log(step1) // { value:6, done:false }
+let step2 = f.next(12)
+console.log(step2) // { value:8, done:false }
+let step3 = f.next(13)
+console.log(step3) // { value:42, done:true }
+```
+
+不论事件还是 Promise 亦或响应式都离不开回调，事件将主流程与异步回调分离，Promise 将异步回调转为链式回调，响应式将异步回调转为流式回调，当 generator 遇到异步回调会发生什么？
+
+以下，模拟定义 `$.get` 函数如下
+
+```javascript
+let $ = {
+  get(url, callback) {
+    setTimeout(() => callback(url.substring(5)), 500)
+  },
+}
+```
+
+以回调嵌套为例
+
+```javascript
+// 回调方式
+$.get("step/1", (data1) => {
+  $.get(`step/2/${data1}`, (data2) => {
+    $.get(`step/3/${data2}`, (data3) => {
+      /* do the final thing */
+    })
+  })
+})
+```
+
+利用 generator 可暂停、可恢复的能力，可在异步回调逻辑中触发恢复下一步的动作，并将当前的异步处理结果带回，以此将回调嵌套拉平，将异步回调逻辑写出同步的顺滑感，我们称之为异步逻辑的“同步化”（同步的写法，异步的执行）
+
+```javascript
+// 封装异步调用
+function get(url) {
+  $.get(url, (data) => {
+    // 触发后续流程，并将数据代入后续流程
+    req.next(data)
+  })
+}
+
+// generator 异步逻辑同步化
+function* asyncAsSync() {
+  // 同步的写法，异步的执行
+  let result1 = yield get("step/1")
+  let result2 = yield get(`step/2/${result1}`)
+  let result3 = yield get(`step/3/${result2}`)
+  console.log(result3)
+  /* do the final thing */
+}
+
+// 生成generator
+var req = asyncAsSync()
+// 触发一次
+req.next()
+
+// do something at the same time
+console.log("do something at the same time when excute gets")
+```
+
+输出
+
+```
+do something at the same time when excute gets
+3/2/1
+```
+
+asyncAsSync 函数中看似是同步的逻辑，实则每一个 yield get()都是一次异步调用，异步的结果通过 req.next()带回，并且 asyncAsSync 函数的调用并不会阻塞最后一行 console.log 的执行
+
+![](https://thumbsnap.com/i/SUjdtfiC.png?0421)
+
+在此之上还有一种方法可以自动的执行 generator 的 next 函数，那就是科里化，这里就不再赘述
+
+## generator 的实际应用（koa）
+
+将 generator 的精髓用到极致的还要当属 koa（koa2 已经使用 async 改写，不再使用 generator），它将 http server 端异步 middleware 的书写体验整个提升了一个层级
+
+middleware 类似于 java servlet 中的 filter，其执行过程类似于剥洋葱
+
+![](https://thumbsnap.com/i/yGNhRHpA.png?0421)
+
+而当所有的 middleware（包括核心 core）都是异步的话，整个处理逻辑在各 middleware 之间的跳转就变得复杂起来
+
+koa 使用 generator 的特性，巧妙实现了请求处理逻辑在各异步 middleware 间的灵活跳转执行
+
+以下，简单模拟 koa-middleware 的实现逻辑
+
+```javascript
+// 定义app
+let app = {
+  middlewares: [],
+
+  core: function* (next) {
+    console.log("excute core!")
+    // yield 异步操作
+    yield* next
+  },
+
+  // 将多个middleware组合成链式结构
+  compose(middlewares) {
+    function* noop() {}
+    return function* (next) {
+      var i = middlewares.length
+      var prev = next || noop()
+      var curr
+
+      while (i--) {
+        curr = middlewares[i]
+        prev = curr.call(this, prev)
+      }
+
+      yield* prev
+    }
+  },
+
+  // 添加middleware
+  use(middleware) {
+    this.middlewares.push(middleware)
+  },
+
+  run() {
+    let chain = this.compose([...this.middlewares, this.core])
+    co(chain)
+  },
+}
+```
+
+使用
+
+```javascript
+app.use(function* (next) {
+  console.log("before middleware1")
+  // yield 异步操作
+  yield* next
+  console.log("after middleware1")
+  // yield 异步操作
+})
+
+app.use(function* (next) {
+  console.log("before middleware2")
+  // yield 异步操作
+  yield* next
+  console.log("after middleware2")
+  // yield 异步操作
+})
+
+app.run()
+```
+
+输出
+
+```
+before middleware1
+before middleware2
+excute core!
+after middleware2
+after middleware1
+```
+
+简单来讲，`async` 其实就是 `generator` 的语法糖
+
+使用 async 替代 generator 的标星函数 function\*
+使用 await 替代 yield
+await 后可跟普通值、普通函数及 Promise 对象
+async 自带自动执行器
+async/await 相比 generator + thunk/Promise + co 的方案，更加语义化，也更容易理解
+
+## Node 支持协程吗?
+
+Node 真的只是通过回调实现 `async` 吗
+
+这里引用知乎一篇[高赞答案](https://www.zhihu.com/question/305443189/answer/551716136):
+
+> 如果你使用支持 ES6 的平台，Node.js 8+，那么就可以原生支持 coroutine。
+
+考虑这段代码
+
+```javascript
+async function foo() {
+  await bar()
+  return 42
+}
+
+async function bar() {
+  await Promise.resolve()
+  throw new Error("BEEP BEEP")
+}
+
+foo.catch((error) => console.log(error.stack))
+```
+
+在 Node 8 和 10 中运行此代码会产生以下输出
+
+![](https://thumbsnap.com/i/1VxfpNjG.png?0421)
+
+虽然调用 `foo()` 导致错误，但 `foo` 根本不是堆栈跟踪的一部分。
+
+但是在 `ES7` 中，这可是真·协程啊，因此引擎知道 `bar` 调用完成时它继续执行的位置：在 `foo` 函数的 `await` 之后。巧合的是，这也是函数 foo 暂停的地方。引擎可以使用此信息来重建异步堆栈跟踪的部分，即 `await` 线程。通过此更改，输出变为
+
+![](https://thumbsnap.com/i/Sw1au76o.jpg?0421)
+
+在补充一点，看看在 V8 引擎中是如何实现的。
+
+JSGeneratorObject 定义在 [objects/js-generator.h](https://github.com/v8/v8/blob/29d08f1cd8ad3b3069bff726712f62f6826acddb/src/objects/js-generator.h#L16) 中：
+
+![](https://thumbsnap.com/i/KoSeqKWa.png?0421)
+
+看看这几个方法名，你还怀疑 node.js 是假协程吗？
+
+创建协程定义在 [runtime/runtime-generator.cc](https://link.zhihu.com/?target=https%3A//github.com/v8/v8/blob/0fd6ef88d5fd3dcfa30b4e337288dd30a0dad882/src/runtime/runtime-generator.cc%23L15)
+
+![](https://thumbsnap.com/i/GeBQGdsg.jpg?0421)
+
+先检查函数类型，是否可以被暂停，resumable。创建 JSGeneratorObject 对象，保护现场，运行。
+
+</Success>
+
+<Warning title="参考连接">
+
+1. [进程、线程](https://zhuanlan.zhihu.com/p/135395279)
+2. [Nodejs 真的有协程吗](https://www.zhihu.com/question/305443189)
+3. [聊一聊协程（上）：从Node.js谈起](https://segmentfault.com/a/1190000020968189)
+
+</Warning>
