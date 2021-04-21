@@ -24,7 +24,8 @@ const globalVar = {
   lightGreyColor: "#eee",
   midGreyColor: "#ccc",
   mintColor: "#bfe2ca",
-  maxWidthSite: `${config.maxWidth}px`,
+  minWidthSite: `${config.minWidth}`,
+  maxWidthSite: `${config.maxWidth}`,
 
   // @mixin disable-selection()
   disableSelection: `-webkit-touch-callout: none;
@@ -189,7 +190,7 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   .img-not-gatsby-remark {
-    width:100%;
+    width:fit-content;
     height:100%;
     object-fit: cover;
     overflow: hidden;
@@ -319,7 +320,8 @@ export const GlobalStyles = createGlobalStyle`
     &-horizontal {  
       background: ${() => setThemeVars("#fff", "#3a3d56")};
       &:hover{
-        background: ${() => setThemeVars("#fff !important", "#3a3d56 !important")};
+        background: ${() =>
+          setThemeVars("#fff !important", "#3a3d56 !important")};
       }
     }
 
@@ -348,8 +350,9 @@ export const GlobalStyles = createGlobalStyle`
 
   ${"" /* Applies to react live code */}
   .live-highlight {
-      font-family: ${configStyles.fontCodeBlocks +
-        configStyles.fontsBackUp} !important;
+      font-family: ${
+        configStyles.fontCodeBlocks + configStyles.fontsBackUp
+      } !important;
   }
 
   ${"" /* Custom scrollbar styling for non mobile */}
