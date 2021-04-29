@@ -5,6 +5,10 @@ tags: [JavaScript]
 excerpt: Scope, Closure, this, call, apply
 ---
 
+```toc
+# This code block gets replaced with the TOC
+```
+
 <Info title="前言">
 
 JS 属于静态词法作用域，正是由于这个原因，导致 JS 中的变量和 `this` 指向变得很奇怪，所以本文就该问题进行了详细展开，让我们彻底把这个问题弄懂，因为……这也是面试高频考点之一 XD
@@ -12,15 +16,16 @@ JS 属于静态词法作用域，正是由于这个原因，导致 JS 中的变�
 全文将围绕以下内容进行展开：
 
 > 当 JavaScript 代码执行一段可执行代码(executable code)时，会创建对应的执行上下文(execution context)。
-> 
-对于每个执行上下文，都有三个重要属性：
->  - 变量对象(Variable object，VO)
->  - 作用域链(Scope chain)
->  - this
+>
+> 对于每个执行上下文，都有三个重要属性：
+>
+> - 变量对象(Variable object，VO)
+> - 作用域链(Scope chain)
+> - this
 
 以上三部分也是理解 JS 作用域和闭包的核心知识点，一旦掌握，你就打通了任督二脉
 
-*P.S. 文章基本摘录自冴羽大佬的博客，因为大佬叙述的整体框架太棒了，逻辑梳理得很完美，对于理解 JS 作用域闭包很有帮助，文笔也很赞，本文主要用于个人整理学习使用*
+_P.S. 文章基本摘录自冴羽大佬的博客，因为大佬叙述的整体框架太棒了，逻辑梳理得很完美，对于理解 JS 作用域闭包很有帮助，文笔也很赞，本文主要用于个人整理学习使用_
 
 </Info>
 
@@ -106,18 +111,18 @@ console.log(this.b)
 
 1. 函数的所有形参 (如果是函数上下文)
 
-    - 由名称和对应值组成的一个变量对象的属性被创建
-    - 没有实参，属性值设为 undefined
+   - 由名称和对应值组成的一个变量对象的属性被创建
+   - 没有实参，属性值设为 undefined
 
 2. 函数声明
 
-    - 由名称和对应值（函数对象(function-object)）组成一个变量对象的属性被创建
-    - 如果变量对象已经存在相同名称的属性，则完全替换这个属性
+   - 由名称和对应值（函数对象(function-object)）组成一个变量对象的属性被创建
+   - 如果变量对象已经存在相同名称的属性，则完全替换这个属性
 
 3. 变量声明
 
-    - 由名称和对应值（undefined）组成一个变量对象的属性被创建；
-    - 如果变量名称跟已经声明的形式参数或函数相同，则变量声明不会干扰已经存在的这类属性
+   - 由名称和对应值（undefined）组成一个变量对象的属性被创建；
+   - 如果变量名称跟已经声明的形式参数或函数相同，则变量声明不会干扰已经存在的这类属性
 
 举个例子：
 
@@ -260,7 +265,7 @@ function foo() {
 
 函数创建时，各自的`[[scope]]`为：
 
-```javascript
+````javascript
 foo.[[scope]] = [
   globalContext.VO
 ];
@@ -279,7 +284,7 @@ bar.[[scope]] = [
 
 ```javascript
 Scope = [AO].concat([[Scope]]);
-```
+````
 
 至此，作用域链创建完毕。
 
@@ -288,12 +293,12 @@ Scope = [AO].concat([[Scope]]);
 以下面的例子为例，结合着之前讲的变量对象和执行上下文栈，我们来总结一下函数执行上下文中作用域链和变量对象的创建过程：
 
 ```javascript
-var scope = "global scope";
-function checkscope(){
-    var scope2 = 'local scope';
-    return scope2;
+var scope = "global scope"
+function checkscope() {
+  var scope2 = "local scope"
+  return scope2
 }
-checkscope();
+checkscope()
 ```
 
 执行过程如下：
@@ -301,25 +306,20 @@ checkscope();
 1. checkscope 函数被创建，保存作用域链到 内部属性 `[[scope]]`
 
 ```javascript
-checkscope.[[scope]] = [
-    globalContext.VO
-];
+checkscope[[scope]] = [globalContext.VO]
 ```
 
 2. 执行 checkscope 函数，创建 checkscope 函数执行上下文，checkscope 函数执行上下文被压入执行上下文栈
 
 ```javascript
-ECStack = [
-    checkscopeContext,
-    globalContext
-];
+ECStack = [checkscopeContext, globalContext]
 ```
 
 3. checkscope 函数并不立刻执行，开始做准备工作，第一步：复制函数 `[[scope]]` 属性创建作用域链
 
 ```javascript
 checkscopeContext = {
-    Scope: checkscope.[[scope]],
+  Scope: checkscope[[scope]],
 }
 ```
 
@@ -341,13 +341,13 @@ checkscopeContext = {
 
 ```javascript
 checkscopeContext = {
-    AO: {
-        arguments: {
-            length: 0
-        },
-        scope2: undefined
+  AO: {
+    arguments: {
+      length: 0,
     },
-    Scope: [AO, [[Scope]]]
+    scope2: undefined,
+  },
+  Scope: [AO, [[Scope]]],
 }
 ```
 
@@ -355,22 +355,20 @@ checkscopeContext = {
 
 ```javascript
 checkscopeContext = {
-    AO: {
-        arguments: {
-            length: 0
-        },
-        scope2: 'local scope'
+  AO: {
+    arguments: {
+      length: 0,
     },
-    Scope: [AO, [[Scope]]]
+    scope2: "local scope",
+  },
+  Scope: [AO, [[Scope]]],
 }
 ```
 
 7.查找到 scope2 的值，返回后函数执行完毕，函数上下文从执行上下文栈中弹出
 
 ```javascript
-ECStack = [
-    globalContext
-];
+ECStack = [globalContext]
 ```
 
 </Primary>
@@ -454,33 +452,33 @@ The Reference type is used to explain the behaviour of such operators as delete,
 举个例子：
 
 ```javascript
-var foo = 1;
+var foo = 1
 
 // 对应的Reference是：
 var fooReference = {
-    base: EnvironmentRecord,
-    name: 'foo',
-    strict: false
-};
+  base: EnvironmentRecord,
+  name: "foo",
+  strict: false,
+}
 ```
 
 再举个例子：
 
 ```javascript
 var foo = {
-    bar: function () {
-        return this;
-    }
-};
- 
-foo.bar(); // foo
+  bar: function () {
+    return this
+  },
+}
+
+foo.bar() // foo
 
 // bar对应的Reference是：
 var BarReference = {
-    base: foo,
-    propertyName: 'bar',
-    strict: false
-};
+  base: foo,
+  propertyName: "bar",
+  strict: false,
+}
 ```
 
 而且规范中还提供了获取 `Reference` 组成部分的方法，比如 `GetBase` 和 `IsPropertyReference`。
@@ -535,10 +533,10 @@ GetValue 返回对象属性真正的值，但是要注意：
 
 > 1.Let ref be the result of evaluating MemberExpression.
 > 6.If Type(ref) is Reference, then
->  a.If IsPropertyReference(ref) is true, then
->      i.Let thisValue be GetBase(ref).
->  b.Else, the base of ref is an Environment Record
->      i.Let thisValue be the result of calling the ImplicitThisValue concrete method of GetBase(ref).
+> a.If IsPropertyReference(ref) is true, then
+> i.Let thisValue be GetBase(ref).
+> b.Else, the base of ref is an Environment Record
+> i.Let thisValue be the result of calling the ImplicitThisValue concrete method of GetBase(ref).
 > 7.Else, Type(ref) is not Reference.
 > a. Let thisValue be undefined.
 
@@ -566,7 +564,7 @@ GetValue 返回对象属性真正的值，但是要注意：
 
 `MemberExpression` :
 
-- PrimaryExpression // 原始表达式 可以参见《JavaScript权威指南第四章》
+- PrimaryExpression // 原始表达式 可以参见《JavaScript 权威指南第四章》
 - FunctionExpression // 函数定义表达式
 - MemberExpression [ Expression ] // 属性访问表达式
 - MemberExpression . IdentifierName // 属性访问表达式
@@ -576,26 +574,26 @@ GetValue 返回对象属性真正的值，但是要注意：
 
 ```javascript
 function foo() {
-    console.log(this)
+  console.log(this)
 }
 
-foo(); // MemberExpression 是 foo
+foo() // MemberExpression 是 foo
 
 function foo() {
-    return function() {
-        console.log(this)
-    }
+  return function () {
+    console.log(this)
+  }
 }
 
-foo()(); // MemberExpression 是 foo()
+foo()() // MemberExpression 是 foo()
 
 var foo = {
-    bar: function () {
-        return this;
-    }
+  bar: function () {
+    return this
+  },
 }
 
-foo.bar(); // MemberExpression 是 foo.bar
+foo.bar() // MemberExpression 是 foo.bar
 ```
 
 所以简单理解 `MemberExpression` 其实就是`()`左边的部分。
@@ -607,30 +605,30 @@ foo.bar(); // MemberExpression 是 foo.bar
 举最后一个例子：
 
 ```javascript
-var value = 1;
+var value = 1
 
 var foo = {
   value: 2,
   bar: function () {
-    return this.value;
-  }
+    return this.value
+  },
 }
 
 //示例1
-console.log(foo.bar());
+console.log(foo.bar())
 //示例2
-console.log((foo.bar)());
+console.log(foo.bar())
 //示例3
-console.log((foo.bar = foo.bar)());
+console.log((foo.bar = foo.bar)())
 //示例4
-console.log((false || foo.bar)());
+console.log((false || foo.bar)())
 //示例5
-console.log((foo.bar, foo.bar)());
+console.log((foo.bar, foo.bar)())
 ```
 
 下面分别来解释上述代码中的示例
 
-### 示例1 foo.bar()
+### 示例 1 foo.bar()
 
 在示例 1 中，`MemberExpression` 计算的结果是 foo.bar，那么 foo.bar 是不是一个 Reference 呢？
 
@@ -645,9 +643,9 @@ console.log((foo.bar, foo.bar)());
 ```javascript
 var Reference = {
   base: foo,
-  name: 'bar',
-  strict: false
-};
+  name: "bar",
+  strict: false,
+}
 ```
 
 接下来按照 2.1 的判断流程走：
@@ -666,16 +664,16 @@ var Reference = {
 this = GetBase(ref)，
 ```
 
-`GetBase` 也已经铺垫了，获得 `base value` 值，这个例子中就是 foo，所以 `this` 的值就是 foo ，示例1的结果就是 2！
+`GetBase` 也已经铺垫了，获得 `base value` 值，这个例子中就是 foo，所以 `this` 的值就是 foo ，示例 1 的结果就是 2！
 
-唉呀妈呀，为了证明 `this` 指向foo，真是累死我了！但是知道了原理，剩下的就更快了。
+唉呀妈呀，为了证明 `this` 指向 foo，真是累死我了！但是知道了原理，剩下的就更快了。
 
-### 示例2 (foo.bar)()
+### 示例 2 (foo.bar)()
 
-看示例2：
+看示例 2：
 
 ```javascript
-console.log((foo.bar)());
+console.log(foo.bar())
 ```
 
 foo.bar 被 () 包住，查看规范 11.1.6 The Grouping Operator
@@ -687,9 +685,9 @@ foo.bar 被 () 包住，查看规范 11.1.6 The Grouping Operator
 
 实际上 () 并没有对 MemberExpression 进行计算，所以其实跟示例 1 的结果是一样的。
 
-### 示例3 (foo.bar = foo.bar)()
+### 示例 3 (foo.bar = foo.bar)()
 
-看示例3，有赋值操作符，查看规范 11.13.1 Simple Assignment ( = ):
+看示例 3，有赋值操作符，查看规范 11.13.1 Simple Assignment ( = ):
 
 计算的第三步：
 
@@ -703,9 +701,9 @@ foo.bar 被 () 包住，查看规范 11.1.6 The Grouping Operator
 
 `this` 为 undefined，非严格模式下，`this` 的值为 undefined 的时候，其值会被隐式转换为全局对象。
 
-### 示例4 (false || foo.bar)()
+### 示例 4 (false || foo.bar)()
 
-看示例4，逻辑与算法，查看规范 11.11 Binary Logical Operators：
+看示例 4，逻辑与算法，查看规范 11.11 Binary Logical Operators：
 
 计算第二步：
 
@@ -713,9 +711,9 @@ foo.bar 被 () 包住，查看规范 11.1.6 The Grouping Operator
 
 因为使用了 `GetValue`，所以返回的不是 `Reference` 类型，`this` 为 undefined
 
-### 示例5 (foo.bar, foo.bar)()
+### 示例 5 (foo.bar, foo.bar)()
 
-看示例5，逗号操作符，查看规范 11.14 Comma Operator ( , )
+看示例 5，逗号操作符，查看规范 11.14 Comma Operator ( , )
 
 计算第二步：
 
@@ -726,26 +724,27 @@ foo.bar 被 () 包住，查看规范 11.1.6 The Grouping Operator
 ### 揭晓结果
 
 ```javascript
-var value = 1;
+var value = 1
 
 var foo = {
   value: 2,
   bar: function () {
-    return this.value;
-  }
+    return this.value
+  },
 }
 
 //示例1
-console.log(foo.bar()); // 2
+console.log(foo.bar()) // 2
 //示例2
-console.log((foo.bar)()); // 2
+console.log(foo.bar()) // 2
 //示例3
-console.log((foo.bar = foo.bar)()); // 1
+console.log((foo.bar = foo.bar)()) // 1
 //示例4
-console.log((false || foo.bar)()); // 1
+console.log((false || foo.bar)()) // 1
 //示例5
-console.log((foo.bar, foo.bar)()); // 1
+console.log((foo.bar, foo.bar)()) // 1
 ```
+
 注意：以上是在非严格模式下的结果，严格模式下因为 this 返回 undefined，所以示例 3 会报错。
 
 ### 补充
@@ -754,21 +753,22 @@ console.log((foo.bar, foo.bar)()); // 1
 
 ```javascript
 function foo() {
-    console.log(this)
+  console.log(this)
 }
 
-foo(); 
+foo()
 ```
 
 `MemberExpression` 是 foo，解析标识符，查看规范 10.3.1 Identifier Resolution，会返回一个 `Reference` 类型的值：
 
 ```javascript
 var fooReference = {
-    base: EnvironmentRecord,
-    name: 'foo',
-    strict: false
-};
+  base: EnvironmentRecord,
+  name: "foo",
+  strict: false,
+}
 ```
+
 接下来进行判断：
 
 > 2.1 如果 ref 是 Reference，并且 IsPropertyReference(ref) 是 true, 那么 this 的值为 GetBase(ref)
@@ -777,7 +777,7 @@ var fooReference = {
 
 `IsPropertyReference(ref)` 的结果为 false，进入下个判断：
 
-> 2.2 如果 ref 是 Reference，并且 base value 值是 Environment Record, 那么this的值为 ImplicitThisValue(ref)
+> 2.2 如果 ref 是 Reference，并且 base value 值是 Environment Record, 那么 this 的值为 ImplicitThisValue(ref)
 
 `base value` 正是 `Environment Record`，所以会调用 `ImplicitThisValue(ref)`
 
@@ -790,15 +790,15 @@ var fooReference = {
 尽管我们可以简单的理解 `this` 为调用函数的对象，如果是这样的话，如何解释下面这个例子呢？
 
 ```javascript
-var value = 1;
+var value = 1
 
 var foo = {
   value: 2,
   bar: function () {
-    return this.value;
-  }
+    return this.value
+  },
 }
-console.log((false || foo.bar)()); // 1
+console.log((false || foo.bar)()) // 1
 ```
 
 此外，又如何确定调用函数的对象是谁呢？在写文章之初，我就面临着这些问题，最后还是放弃从多个情形下给大家讲解 `this` 指向的思路，而是追根溯源的从 ECMASciript 规范讲解 `this` 的指向，尽管从这个角度写起来和读起来都比较吃力，但是一旦多读几遍，明白原理，绝对会给你一个全新的视角看待 `this` 。而你也就能明白，尽管 foo() 和 (foo.bar = foo.bar)() 最后结果都指向了 undefined，但是两者从规范的角度上却有着本质的区别。
@@ -812,54 +812,56 @@ console.log((false || foo.bar)()); // 1
 以这个代码为例：
 
 ```javascript
-var scope = "global scope";
-function checkscope(){
-    var scope = "local scope";
-    function f(){
-        return scope;
-    }
-    return f();
+var scope = "global scope"
+function checkscope() {
+  var scope = "local scope"
+  function f() {
+    return scope
+  }
+  return f()
 }
-checkscope();
+checkscope()
 ```
 
 执行过程如下：
 
 1.执行全局代码，创建全局执行上下文，全局上下文被压入执行上下文栈
+
 ```javascript
-    ECStack = [
-        globalContext
-    ];
+ECStack = [globalContext]
 ```
+
 2.全局上下文初始化
+
 ```javascript
-    globalContext = {
-        VO: [global],
-        Scope: [globalContext.VO],
-        this: globalContext.VO
-    }
+globalContext = {
+  VO: [global],
+  Scope: [globalContext.VO],
+  this: globalContext.VO,
+}
 ```
+
 2.初始化的同时，checkscope 函数被创建，保存作用域链到函数的内部属性 `[[scope]]`
+
 ```javascript
-    checkscope.[[scope]] = [
-      globalContext.VO
-    ];
+checkscope[[scope]] = [globalContext.VO]
 ```
+
 3.执行 checkscope 函数，创建 checkscope 函数执行上下文，checkscope 函数执行上下文被压入执行上下文栈
+
 ```javascript
-    ECStack = [
-        checkscopeContext,
-        globalContext
-    ];
+ECStack = [checkscopeContext, globalContext]
 ```
+
 4.checkscope 函数执行上下文初始化：
 
-  1. 复制函数 `[[scope]]` 属性创建作用域链，
-  2. 用 arguments 创建活动对象，
-  3. 初始化活动对象，即加入形参、函数声明、变量声明，
-  4. 将活动对象压入 checkscope 作用域链顶端。
+1. 复制函数 `[[scope]]` 属性创建作用域链，
+2. 用 arguments 创建活动对象，
+3. 初始化活动对象，即加入形参、函数声明、变量声明，
+4. 将活动对象压入 checkscope 作用域链顶端。
 
 同时 f 函数被创建，保存作用域链到 f 函数的内部属性 `[[scope]]`
+
 ```javascript
     checkscopeContext = {
         AO: {
@@ -873,48 +875,44 @@ checkscope();
         this: undefined
     }
 ```
+
 5.执行 f 函数，创建 f 函数执行上下文，f 函数执行上下文被压入执行上下文栈
 
 ```javascript
-    ECStack = [
-        fContext,
-        checkscopeContext,
-        globalContext
-    ];
+ECStack = [fContext, checkscopeContext, globalContext]
 ```
 
 6.f 函数执行上下文初始化, 以下跟第 4 步相同：
 
-  1. 复制函数 `[[scope]]` 属性创建作用域链
-  2. 用 arguments 创建活动对象
-  3. 初始化活动对象，即加入形参、函数声明、变量声明
-  4. 将活动对象压入 f 作用域链顶端
+1. 复制函数 `[[scope]]` 属性创建作用域链
+2. 用 arguments 创建活动对象
+3. 初始化活动对象，即加入形参、函数声明、变量声明
+4. 将活动对象压入 f 作用域链顶端
+
 ```javascript
-    fContext = {
-        AO: {
-            arguments: {
-                length: 0
-            }
-        },
-        Scope: [AO, checkscopeContext.AO, globalContext.VO],
-        this: undefined
-    }
+fContext = {
+  AO: {
+    arguments: {
+      length: 0,
+    },
+  },
+  Scope: [AO, checkscopeContext.AO, globalContext.VO],
+  this: undefined,
+}
 ```
+
 7.f 函数执行，沿着作用域链查找 `scope` 值，返回 `scope` 值
 
 8.f 函数执行完毕，f 函数上下文从执行上下文栈中弹出
+
 ```javascript
-    ECStack = [
-        checkscopeContext,
-        globalContext
-    ];
+ECStack = [checkscopeContext, globalContext]
 ```
 
 9.checkscope 函数执行完毕，checkscope 执行上下文从执行上下文栈中弹出
+
 ```javascript
-    ECStack = [
-        globalContext
-    ];
+ECStack = [globalContext]
 ```
 
 </Primary>
@@ -936,13 +934,13 @@ MDN 对闭包的定义为：
 举个例子：
 
 ```javascript
-var a = 1;
+var a = 1
 
 function foo() {
-    console.log(a);
+  console.log(a)
 }
 
-foo();
+foo()
 ```
 
 foo 函数可以访问变量 a，但是 a 既不是 foo 函数的局部变量，也不是 foo 函数的参数，所以 a 就是自由变量。
@@ -951,37 +949,37 @@ foo 函数可以访问变量 a，但是 a 既不是 foo 函数的局部变量，
 
 还真是这样的！
 
-所以在《JavaScript权威指南》中就讲到：从技术的角度讲，所有的JavaScript函数都是闭包。
+所以在《JavaScript 权威指南》中就讲到：从技术的角度讲，所有的 JavaScript 函数都是闭包。
 
 咦，这怎么跟我们平时看到的讲到的闭包不一样呢！？
 
 别着急，这是理论上的闭包，其实还有一个实践角度上的闭包，让我们看看汤姆大叔翻译的关于闭包的文章中的定义：
 
-ECMAScript中，闭包指的是：
+ECMAScript 中，闭包指的是：
 
 1. 从理论角度：所有的函数。因为它们都在创建的时候就将上层上下文的数据保存起来了。哪怕是简单的全局变量也是如此，因为函数中访问全局变量就相当于是在访问自由变量，这个时候使用最外层的作用域。
 2. 从实践角度：以下函数才算是闭包：
-    1. 即使创建它的上下文已经销毁，它仍然存在（比如，内部函数从父函数中返回）
-    2. 在代码中引用了自由变量
+   1. 即使创建它的上下文已经销毁，它仍然存在（比如，内部函数从父函数中返回）
+   2. 在代码中引用了自由变量
 
 接下来就来讲讲实践上的闭包。
 
 ### 分析
 
-让我们先写个例子，例子依然是来自**《JavaScript权威指南》**，稍微做点改动：
+让我们先写个例子，例子依然是来自**《JavaScript 权威指南》**，稍微做点改动：
 
 ```javascript
-var scope = "global scope";
-function checkscope(){
-    var scope = "local scope";
-    function f(){
-        return scope;
-    }
-    return f;
+var scope = "global scope"
+function checkscope() {
+  var scope = "local scope"
+  function f() {
+    return scope
+  }
+  return f
 }
 
-var foo = checkscope();
-foo();
+var foo = checkscope()
+foo()
 ```
 
 首先我们要分析一下这段代码中执行上下文栈和执行上下文的变化情况:
@@ -1007,7 +1005,7 @@ foo();
 
 ```javascript
 fContext = {
-    Scope: [AO, checkscopeContext.AO, globalContext.VO],
+  Scope: [AO, checkscopeContext.AO, globalContext.VO],
 }
 ```
 
@@ -1018,7 +1016,7 @@ fContext = {
 1. 即使创建它的上下文已经销毁，它仍然存在（比如，内部函数从父函数中返回）
 2. 在代码中引用了自由变量
 
-在这里再补充一个《JavaScript权威指南》英文原版对闭包的定义:
+在这里再补充一个《JavaScript 权威指南》英文原版对闭包的定义:
 
 > This combination of a function object and a scope (a set of variable bindings) in which the function’s variables are resolved is called a closure in the computer science literature.
 
@@ -1029,17 +1027,17 @@ fContext = {
 接下来，看这道刷题必刷，面试必考的闭包题：
 
 ```javascript
-var data = [];
+var data = []
 
 for (var i = 0; i < 3; i++) {
   data[i] = function () {
-    console.log(i);
-  };
+    console.log(i)
+  }
 }
 
-data[0]();
-data[1]();
-data[2]();
+data[0]()
+data[1]()
+data[2]()
 ```
 
 答案是都是 3，让我们分析一下原因：
@@ -1070,19 +1068,19 @@ data[1] 和 data[2] 是一样的道理。
 所以让我们改成闭包看看：
 
 ```javascript
-var data = [];
+var data = []
 
 for (var i = 0; i < 3; i++) {
   data[i] = (function (i) {
-        return function(){
-            console.log(i);
-        }
-  })(i);
+    return function () {
+      console.log(i)
+    }
+  })(i)
 }
 
-data[0]();
-data[1]();
-data[2]();
+data[0]()
+data[1]()
+data[2]()
 ```
 
 当执行到 data[0] 函数之前，此时全局上下文的 VO 为：
@@ -1095,6 +1093,7 @@ globalContext = {
     }
 }
 ```
+
 跟没改之前一模一样。
 
 当执行 data[0] 函数的时候，data[0] 函数的作用域链发生了改变：
@@ -1105,21 +1104,21 @@ data[0]Context = {
 }
 ```
 
-匿名函数执行上下文的AO为：
+匿名函数执行上下文的 AO 为：
 
 ```javascript
 匿名函数Context = {
-    AO: {
-        arguments: {
-            0: 0,
-            length: 1
-        },
-        i: 0
-    }
+  AO: {
+    arguments: {
+      0: 0,
+      length: 1,
+    },
+    i: 0,
+  },
 }
 ```
 
-data[0]Context 的 AO 并没有 i 值，所以会沿着作用域链从匿名函数 Context.AO 中查找，这时候就会找 i 为 0，找到了就不会往 globalContext.VO 中查找了，即使 globalContext.VO 也有 i 的值(值为3)，所以打印的结果就是0。
+data[0]Context 的 AO 并没有 i 值，所以会沿着作用域链从匿名函数 Context.AO 中查找，这时候就会找 i 为 0，找到了就不会往 globalContext.VO 中查找了，即使 globalContext.VO 也有 i 的值(值为 3)，所以打印的结果就是 0。
 
 data[1] 和 data[2] 是一样的道理。
 
@@ -1160,6 +1159,28 @@ bar.call(foo) // 1
 2. 为了模拟 ES3 中实现不定长传参，要结合 `arguments` 字符串数组和 `eval` 来实现，否则用 ES6 的剩余操作符（...）即可
 3. `this` 参数可以传 `null`，这时 `this` 指向全局作用域（window 或 globalThis）
 
+**ES6 版本**
+
+```javascript
+Function.prototype.myCall = function (context, ...args) {
+  if (typeof this !== "function") {
+    throw new TypeError("only function can call myCall!")
+  }
+
+  context = context || window || globalThis
+  const fn = Symbol.for("fn")
+  context[fn] = this
+
+  const res = context[fn](...args)
+
+  delete context[fn]
+
+  return res
+}
+```
+
+**ES5 版本**
+
 ```javascript
 Function.prototype.myCall = function (context) {
   var context = context || window || globalThis
@@ -1196,6 +1217,25 @@ bar.myCall(null, "pfan", 28)
 
 - apply
 
+**ES6 版本**
+
+```javascript
+Function.prototype.myApply = function (context, arr) {
+  if (typeof this !== "function") {
+    throw new TypeError("only function can call apply!")
+  }
+
+  context = context || window || globalThis
+  const fn = Symbol("fn")
+  context[fn] = this
+  const res = context[fn](arr)
+  delete context[fn]
+  return res
+}
+```
+
+**ES5 版本**
+
 `apply` 和 `call` 很像，唯一的区别就是，`apply` 只有 2 个参数，第二个参数是函数形参数组，而非 `call` 里面展开成多个参数
 
 ```javascript
@@ -1229,9 +1269,29 @@ Function.prototype.apply = function (context, arr) {
 
 1. 返回一个函数
 2. 可以传入参数
-   3\*（没有显示提出，但是属于 bind 特性）. 一个绑定函数也能使用 new 操作符创建对象：这种行为就像把原函数当成构造器。提供的 this 值被忽略，同时调用时的参数被提供给模拟函数。
 
-实现如下：
+3\*（没有显示提出，但是属于 bind 特性）. 一个绑定函数也能使用 new 操作符创建对象：这种行为就像把原函数当成构造器。提供的 this 值被忽略，同时调用时的参数被提供给模拟函数。
+
+**ES6 版本**
+
+```javascript
+Function.prototype.myBind = function (context, ...args) {
+  if (typeof this !== "function") {
+    throw new TypeError("only function can bind!")
+  }
+
+  const self = this
+  return function F() {
+    if (this instanceof F) {
+      return new self(...args, ...arguments)
+    }
+
+    return self.apply(context, [...args, ...arguments])
+  }
+}
+```
+
+**ES5 版本**
 
 ```javascript
 Function.prototype.myBind = function (context) {

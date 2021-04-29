@@ -5,7 +5,13 @@ tags: [JavaScript]
 excerpt: null & NaN, Number, String
 ---
 
+```toc
+# This code block gets replaced with the TOC
+```
+
 <Primary title="数据类型">
+
+## 数据类型
 
 ### 1. null 和 undefined
 
@@ -349,7 +355,7 @@ undefined / Infinity // NaN
 Infinity / undefined // NaN
 ```
 
-### 2.4 parseInt
+#### 2.4 parseInt
 
 字符串转为整数的时候，是一个个字符依次转换，如果遇到不能转为数字的字符，就不再进行下去，返回已经转好的部分。
 
@@ -468,7 +474,7 @@ parseFloat("123.45#") // 123.45
 Number("123.45#") // NaN
 ```
 
-### 2.5 isNaN()
+#### 2.5 isNaN()
 
 isNaN 只对数值有效，如果传入其他值，会被先转成数值。比如，传入字符串的时候，字符串会被先转成 NaN，所以最后返回 true，这一点要特别引起注意。也就是说，isNaN 为 true 的值，有可能不是 NaN，而是一个字符串。
 
@@ -512,7 +518,7 @@ function myIsNaN(value) {
 }
 ```
 
-### 2.6 isFinite()
+#### 2.6 isFinite()
 
 isFinite 方法返回一个布尔值，表示某个值是否为正常的数值。
 
@@ -527,7 +533,7 @@ isFinite(-1) // true
 
 除了`Infinity`、`-Infinity`、`NaN`和`undefined`这几个值会返回 false，isFinite 对于其他的数值都会返回 true。
 
-## 3. String 编码相关
+### 3. String 编码相关
 
 每个字符在 JavaScript 内部都是以 16 位（即 2 个字节）的 `UTF-16` 格式储存。也就是说，JavaScript 的单位字符长度固定为 16 位长度，即 2 个字节。
 
@@ -585,10 +591,75 @@ b64Decode("JUU0JUJEJUEwJUU1JUE1JUJE") // "你好"
 
 </Primary>
 
+<Primary title="内置对象，原生对象">
+
+## 内置对象，原生对象
+
+JS 中的对象有`内置对象(built-in object)`，有`原生对象(native object)`，还有`宿主对象`，`基本类型`等等不同的叫法和分类
+
+这些概念经常混淆在一起，对初学者很不友好，即便是一些 JS 老鸟，可能都没能把它们划分得很清楚，下面我以我的理解，一笔概括它们之间的关系：
+
+1. `原生对象`，可以理解为不是由三方代码产生（也就是你自己写的），而是你使用 JS 时默认可以使用的对象
+2. `原生对象`即可以是内置的对象，也可以是内置的函数，因为都是直接可以拿到的，不需要添加额外的代码
+3. `内置对象`，包含于`原生对象`中，也就是说所有`内置对象`也是直接可以使用的
+4. `内置对象`代表这些对象仅仅跟 `ECMAScript` 有关系，跟宿主环境无关
+5. 容易推断，`宿主环境`就是非内置的，跟宿主环境有关的`原生对象`
+6. `宿主对象`可以分为 `DOM` 和 `BOM`
+7. `基本类型`，是 `ECMAScript` 规定的几种基本的元素值类型，不应当当做对象来看待，所以不应该属于`原生对象`的范畴，即便我们默认就能使用
+8. 每个`基本类型`对应着一个`内置对象`，除了`null`和`undefined`
+9. 我们之所以可以对`基本类型`执行对应类型的`内置对象`的操作（获取属性，执行成员函数等），是因为 js 在我们对`基本类型`调用这些操作的时候，进行了装箱操作
+
+**总而言之，可以将几个对象之间的关系简单理解为：`原生对象`包含了`内置对象`和`宿主对象`，`基本类型`不属于`原生对象`，但和`内置对象`一一对应**
+
+更详细的说明可以参考[博客](https://blog.csdn.net/sinat_34032652/article/details/79441406)，但是那个整体架构图建议简单看看就好，太精确的划分反而会让问题变复杂，对这几个概念的关系按照我上面所诉去进行理解即可。
+
+再给出一个内置对象的列表
+
+```javascript
+Array
+Boolean
+Date
+Error
+EvalError
+Function
+Infinity
+JSON
+Map
+Math
+NaN
+Number
+Object
+ParallelArray
+Promise
+Proxy
+RegExp
+Set
+String
+Symbol
+SyntaxError
+Uint32Array
+WeakSet
+decodeURI
+decodeURIComponent()
+encodeURI()
+encodeURIComponent()
+escape()已废弃
+eval()
+isFinite()
+isNaN()
+null
+parseFloat
+parseInt
+undefined
+```
+
+</Primary>
+
 <Warning title="参考连接">
 
 1. [WangDoc JS 教程](https://wangdoc.com/javascript/types/number.html)
 2. [对 js 中表达式和语句的理解](https://zhuanlan.zhihu.com/p/38622128#:~:text=%E4%B8%80%E8%88%AC%E6%83%85%E5%86%B5%E4%B8%8B%EF%BC%8C%E5%9C%A8js,%E7%9A%84%E6%93%8D%E4%BD%9C%EF%BC%8C%E6%AF%94%E5%A6%82%E8%B5%8B%E5%80%BC%E8%AF%AD%E5%8F%A5%EF%BC%9A&text=%E8%AF%AD%E5%8F%A5%E5%92%8C%E8%A1%A8%E8%BE%BE%E5%BC%8F%E7%9A%84%E5%8C%BA%E5%88%AB%E5%9C%A8%E4%BA%8E%EF%BC%8C%E8%AF%AD%E5%8F%A5%E6%98%AF%E4%B8%BA%E4%BA%86,%E7%9A%84%E5%80%BC%E4%B8%8D%E5%8C%85%E6%8B%ACundefined%EF%BC%89%E3%80%82)
 3. [StackOverFlow 关于 double 表示](https://stackoverflow.com/questions/2003493/javascript-float-from-to-bits)
+4. [JS 内置对象，原生对象](https://blog.csdn.net/sinat_34032652/article/details/79441406)
 
 </Warning>

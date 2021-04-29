@@ -44,7 +44,11 @@ const TextBlock = ({
   return (
     <StyledTextBlock theme={theme} padding={padding}>
       <StyledIconWrap theme={theme}>{iconElement}</StyledIconWrap>
-      {title && <StyledTitle theme={theme}>{title}</StyledTitle>}
+      {title && (
+        <StyledTitle id={title} theme={theme}>
+          {title}
+        </StyledTitle>
+      )}
       {children}
     </StyledTextBlock>
   )
