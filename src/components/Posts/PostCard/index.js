@@ -53,6 +53,7 @@ const StyledPostCard = styled.div`
   }
 
   p {
+    letter-spacing: 0.05rem;
     margin-top: 0.5rem;
     color: ${() =>
       setThemeVars(theme.fontSubColorLight, theme.fontSubColorDark)};

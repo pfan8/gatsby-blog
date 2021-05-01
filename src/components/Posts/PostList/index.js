@@ -1,15 +1,16 @@
 import React from "react"
 import PostCard from "../PostCard"
+import styled from "styled-components"
 
 const PostList = ({ posts }) => {
   let filteredPosts = posts.filter(
-    post =>
+    (post) =>
       post.node.fields.slug !== "/about/" &&
       post.node.fields.slug !== "/__do-not-remove/"
   )
   return (
-    <div className="posts-list">
-      {filteredPosts.map(post => {
+    <PostListContainer className="posts-list">
+      {filteredPosts.map((post) => {
         return (
           <PostCard
             key={post.node.id}
@@ -25,8 +26,12 @@ const PostList = ({ posts }) => {
           />
         )
       })}
-    </div>
+    </PostListContainer>
   )
 }
+
+const PostListContainer = styled.div`
+  max-width: 40vw;
+`
 
 export default PostList

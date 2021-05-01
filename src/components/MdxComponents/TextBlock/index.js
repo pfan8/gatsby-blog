@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React from "react"
 import styled from "styled-components"
 import PropTypes from "prop-types"
 import { theme } from "../../Shared/styles-global"
@@ -16,14 +16,14 @@ const TextBlock = ({
   title = "",
 }) => {
   // for TOC, if h1~h6 same to title, display none
-  useEffect(() => {
-    const hNodes = document.querySelectorAll("h1, h2, h3, h4, h5, h6")
-    hNodes.forEach((node) => {
-      if (node.innerText === title && !node.className.includes("TextBlock")) {
-        node.style.display = "none"
-      }
-    })
-  }, [title])
+  // useEffect(() => {
+  //   const hNodes = document.querySelectorAll("h1, h2, h3, h4, h5, h6")
+  //   hNodes.forEach((node) => {
+  //     if (node.innerText === title && !node.className.includes("TextBlock")) {
+  //       node.style.display = "none"
+  //     }
+  //   })
+  // }, [title])
   let iconElement
 
   switch (theme) {

@@ -7,7 +7,7 @@ const config = {
   title: `pfan8-blog`, // Displayed in header
   description: `This is my blog`, // Site description
   minWidth: "768px",
-  maxWidth: "60%", // Max width of website
+  maxWidth: "62%", // Max width of website
   enableAbout: true, // Enables about page
   siteUrl: `https://pfan8.github.io/`, // For sitemap & RSS feed
   useScrollIndicator: true, // Use scroll indicator on top of screen in posts

@@ -69,9 +69,9 @@ class PostTemplate extends React.Component {
 
   // refer https://codepen.io/electerious/pen/GzrmwB, but not work for now
   listenTOC() {
-    const toc = document.querySelector(".table-of-contents");
-    if(!toc) {
-      return;
+    const toc = document.querySelector(".table-of-contents")
+    if (!toc) {
+      return
     }
     toc.onmousemove = (e) => {
       const x = e.pageX - e.target.offsetLeft
@@ -346,6 +346,7 @@ export const postQuery = graphql`
 export default PostTemplate
 
 const StyledHTML = styled.div`
+  letter-spacing: 0.05rem;
   word-wrap: break-word;
   padding: 1rem;
   font-family: ${configStyles.fontMain + configStyles.fontsBackUp};
@@ -381,8 +382,25 @@ const StyledHTML = styled.div`
   }
 
   p {
+    img {
+      text-indent: 0;
+    }
+    text-indent: 2rem;
     margin-top: 0.9rem;
-    line-height: 1.4;
+  }
+
+  span,
+  li,
+  p,
+  font {
+    line-height: 1.7;
+  }
+
+  pre {
+    p,
+    span {
+      line-height: 1.5;
+    }
   }
 
   blockquote {
@@ -411,7 +429,7 @@ const StyledHTML = styled.div`
 
   ul {
     list-style: none;
-    margin: 1rem 0.3rem;
+    margin: 1rem 2rem;
     li {
       display: flex;
       justify-content: flex-start;
@@ -430,6 +448,9 @@ const StyledHTML = styled.div`
             )};
         }
       }
+      ol {
+        margin-left: 0;
+      }
       span.ul-children {
         width: 100%;
         & > p:first-child {
@@ -440,8 +461,14 @@ const StyledHTML = styled.div`
   }
 
   ol {
-    margin: 0.5rem 1.2rem;
+    margin: 0.5rem 3rem;
     li {
+      p {
+        text-indent: 0;
+      }
+      ul {
+        margin-left: 0;
+      }
       margin: 1rem 0;
       margin-left: 0.3rem;
       span {

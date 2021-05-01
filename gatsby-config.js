@@ -83,7 +83,7 @@ module.exports = {
             options: {
               tight: false,
               ordered: false,
-              fromHeading: 1,
+              fromHeading: 2,
               toHeading: 6,
               className: "table-of-contents",
             },
