@@ -1,6 +1,7 @@
 ---
 title: 算法专题一、排序
 date: 2021-05-01
+update-date: 2021-05-03
 tags: [Algorithm-Sort, Algorithm-Conclusion]
 excerpt: 选择排序，插入排序，快速排序，堆排序，希尔排序...
 ---
@@ -239,17 +240,19 @@ Cons
 **代码实现**
 
 ```javascript
+const swap = (arr, a, b) => {
+  arr[a] ^= arr[b]
+  arr[b] ^= arr[a]
+  arr[a] ^= arr[b]
+}
+
 const quickSort = (arr, start, end) => {
   if (start === end) {
     return arr
   }
-  let pivot = (start +
-  ~~(Math.random() * (end - start + 1))[(arr[start], arr[pivot])] = [
-    arr[pivot],
-    arr[start],
-  ])
-  start++
-  pivot = 0
+  let pivot = start + ~~(Math.random() * (end - start + 1))
+  swap(arr, pivot, start)
+  pivot = start++
   let l = start,
     r = end
   while (l < r) {
@@ -265,8 +268,10 @@ const quickSort = (arr, start, end) => {
     l++
     r--
   }
-  if (arr[l] > arr[pivot]) l--
-  ;[arr[pivot], arr[l]] = [arr[l], arr[pivot]]
+  if (arr[l] > arr[pivot]) {
+    l--
+  }
+  swap(arr, l, pivot)
   quickSort(arr, start, l - 1)
   quickSort(arr, l + 1, end)
   return arr
@@ -548,6 +553,125 @@ $K_i \geq K_{2i + 1}$ 且 $K_i \geq K_{2i+2} (1 \leq i \leq (n/2)-1)$， 称为�
   由于建初始堆所需的比较次数较多，所以堆排序不适宜于记录数较少的文件。
 </font>
 
+#### 代码实现
+
+1. 从下往上，就地
+
+```javascript
+// 堆排序
+const swap = (A, a, b) => {
+  A[a] ^= A[b]
+  A[b] ^= A[a]
+  A[a] ^= A[b]
+}
+
+const maxHeapify = (A, heapSize, i) => {
+  let l = i * 2 + 1
+  let r = i * 2 + 2
+  let largest = i
+  if (l < heapSize && A[l] > A[largest]) {
+    largest = l
+  }
+  if (r < heapSize && A[r] > A[largest]) {
+    largest = r
+  }
+  // 如果最大元素不是父节点，则交换
+  if (largest !== i) {
+    swap(A, i, largest)
+    // 交换过后可能导致子树不再是最大堆，需要递归判断
+    maxHeapify(A, heapSize, largest)
+  }
+}
+
+const buildMaxHeap = (A, heapSize = A.length) => {
+  for (let i = ~~(A.length / 2) - 1; i >= 0; i--) {
+    maxHeapify(A, heapSize, i)
+  }
+}
+
+const heapSort = (A) => {
+  buildMaxHeap(A)
+  let heapSize = A.length
+  for (let i = A.length - 1; i >= 0; i--) {
+    // 每次将 0 位置的最大元素交换到无序数组的最后一位
+    swap(A, 0, i)
+    maxHeapify(A, --heapSize, 0)
+  }
+  return A
+}
+```
+
+2. 从上往下，插入
+
+```javascript
+const swap = (A, a, b) => {
+  const tmp = A[a]
+  A[a] = A[b]
+  A[b] = tmp
+}
+
+class MaxHeap {
+  constructor(heapSize = Infinity) {
+    this.heap = []
+    this.heapSize = heapSize
+  }
+
+  maxHeapify(i) {
+    const l = 2 * i + 1
+    const r = 2 * i + 2
+    let largest = i
+    if (l < this.heapSize && this.heap[l] > this.heap[largest]) {
+      largest = l
+    }
+    if (r < this.heapSize && this.heap[r] > this.heap[largest]) {
+      largest = r
+    }
+    if (largest !== i) {
+      swap(this.heap, i, largest)
+      this.maxHeapify(largest) // 交换过后，子树可能不满足最大堆
+    }
+  }
+
+  insert(node) {
+    this.heap.push(node)
+    let cur = this.heap.length - 1
+    let parent = ~~((cur - 1) / 2)
+    for (; cur > 0 && this.heap[parent] < this.heap[cur]; ) {
+      swap(this.heap, cur, parent)
+      cur = parent
+      parent = ~~((cur - 1) / 2)
+    }
+    // 如果堆大小超出限制，需要pop一个
+    if (this.size() > this.heapSize) {
+      this.pop()
+    }
+  }
+
+  pop() {
+    swap(this.heap, 0, this.heap.length - 1)
+    const ans = this.heap.pop()
+    this.maxHeapify(0)
+    return ans
+  }
+
+  size() {
+    return this.heap.length
+  }
+}
+
+const heapSort = (nums) => {
+  const heap = new MaxHeap()
+  for (let num of nums) {
+    heap.insert(num)
+  }
+  const res = []
+  while (heap.size()) {
+    res.unshift(heap.pop())
+  }
+  return res
+}
+```
+
 #### 相关题目
 
 以下题目是可以用堆排，但不仅限于用堆排。通常可以用堆排的题也可以用快排和桶排。
@@ -656,6 +780,26 @@ $K_i \geq K_{2i + 1}$ 且 $K_i \geq K_{2i+2} (1 \leq i \leq (n/2)-1)$， 称为�
 
 专家门提倡，几乎任何排序工作在开始时都可以用希尔排序，若在实际使用中证明它不够快， 再改成快速排序这样更高级的排序算法。
 
+#### 代码实现
+
+```javascript
+const shellSort = (A) => {
+  for (let inc = ~~(A.length / 2); inc > 0; inc = ~~(inc / 2)) {
+    for (let i = inc; i < A.length; i++) {
+      let key = A[i]
+      for (let j = i; j >= 0; j -= inc) {
+        if (j - inc < 0 || A[j - inc] <= key) {
+          A[j] = key
+          break
+        }
+        A[j] = A[j - inc]
+      }
+    }
+  }
+  return A
+}
+```
+
 #### 相关题目
 
 [LeetCode_912 Sort an Array](https://leetcode-cn.com/problems/sort-an-array/)
@@ -744,6 +888,47 @@ Shell 算法的性能与所选取的分组长度序列有很大关系。只对�
 归并排序的空间复杂度为 $O(n)$，会占用内存。
 
 总之，归并排序虽然比较占用内存，但却是一种效率高且稳定的算法。
+
+#### 代码实现
+
+```javascript
+const mergeSort = (A, start = 0, end = A.length - 1, tmpArr = A.slice()) => {
+  if (start >= end) return
+
+  const mid = ~~((end - start) / 2) + start
+  mergeSort(A, start, mid, tmpArr)
+  mergeSort(A, mid + 1, end, tmpArr)
+
+  // 优化：如果两个子区间首尾元素已经有序，则没必要进行合并
+  if (A[mid + 1] >= A[mid]) return A
+
+  let left = start
+  let right = mid + 1
+  for (let i = start; i <= end; i++) {
+    if (left === mid + 1) {
+      tmpArr[i] = A[right++]
+      continue
+    }
+
+    if (right === end + 1) {
+      tmpArr[i] = A[left++]
+      continue
+    }
+
+    if (A[left] <= A[right]) {
+      tmpArr[i] = A[left++]
+    } else {
+      tmpArr[i] = A[right++]
+    }
+  }
+
+  // 将有序结果复制给原数组
+  for (let i = start; i <= end; i++) {
+    A[i] = tmpArr[i]
+  }
+  return tmpArr
+}
+```
 
 #### 相关题目
 
