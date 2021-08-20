@@ -1,0 +1,125 @@
+---
+title: 网络安全——XSS专题
+date: 2021-08-20
+tags: [Network-Security-XSS, Network-Cookie]
+excerpt: 网络安全, XSS, JS, CSS
+---
+
+```toc
+# This code block gets replaced with the TOC
+```
+
+<Info title="前言">
+
+ 好久没更新博客了，因为 6 月 ~ 8 月都在跳槽准备，如今也算是如愿以偿进入大厂（拿了 5 个大厂 offer，最后选择了蚂蚁 =w=），
+ 入职了一周，工作生活也算进入正轨，但是还是应该保持着对技术的热爱，所以我会继续努力更新博客的，同时因为不需要有太强的目的性，总算可以任意研究自己感兴趣的技术点咯~希望日后能多
+
+</Info>
+
+<Primary title="概述">
+
+XSS 是指 Cross Site Scripting，也就是跨站脚本攻击，是前端领域最常见的安全漏洞
+
+</Primary>
+
+<Success title="XSS 分类">
+
+1. 反射型（Reflected）
+
+服务端接收到客户端的不安全输入，在客户端触发执行
+通过用户输入数据的接口将攻击行为“反射”给浏览器，这种攻击方式往往需要诱导用户点击某个链接，提交某个表单或者进入一个恶意网站时注入脚本进入被攻击者的网站，因此是一种非持久型的攻击
+
+2. 存储型（Stored）
+
+提交带有恶意脚本的内容存储在服务器上，当其他人看到这些内容时发起 Web 攻击
+通常通过富文本编辑器提交恶意脚本，插入危险代码
+因为存储在服务端，因此属于持久型攻击
+
+3. DOM 型
+
+通过恶意脚本修改页面的 DOM 结构，制造攻击
+在浏览器端完成，不需要服务端的交互
+
+------
+类型 | 存储区 | 插入点
+Reflected XSS | 	URL | 	HTML
+Stored XSS |	后端数据库 |	HTML
+DOM XSS |	后端数据库/前端存储/URL |	前端 JavaScript
+------
+
+关于 XSS 的清单（cheat sheet）：https://portswigger.net/web-security/cross-site-scripting/cheat-sheet
+
+</Success>
+
+<Success title="XSS 预防">
+
+通过前面的介绍可以得知，XSS 攻击有两大要素：
+1. 攻击者提交恶意代码。
+2. 浏览器执行恶意代码。
+
+根本的解决方法：**从输入到输出都需要过滤、转义**。
+
+### 输入
+
+输入指客户端请求参数，具体包括：
+- 用户输入
+- URL 参数
+- POST 参数
+
+针对 HTML 代码的编码方式是 HTMLEncode，它的作用是将字符串转换成 HTMLEntities，例如：
+
+              "	&#34
+              #	&#35
+              &	&#38
+              '	&#39
+              (	&#40
+              )	&#41
+              /	&#47
+              ;	&#59
+              <	&#60
+              >	&#62
+
+可以通过 encodeURIComponent API 进行转换。另外，诸如 Vue、React 等流行框架默认会对 HTML 进行转义
+除此之外，富文本的输入需要额外注意：
+
+1. 首先例行进行输入检查，保证用户输入的是完整的 HTML 代码，而不是有拼接的代码
+2. 通过htmlParser解析出 HTML 代码的标签、属性、事件
+3. **富文本的事件肯定要被禁止**，因为富文本并不需要事件这种东西，另外一些危险的标签也需要禁止，例如：`<iframe>，<script>，<base>，<form>`等
+4. 利用白名单机制，只允许安全的标签嵌入，例如：<a>，<img>，div等，白名单不仅仅适用于标签，也适用于属性
+5. 过滤用户 CSS，检查是否有危险代码
+
+### 输出
+
+输出的内容同样有需要转义的部分，包括：
+
+- HTML 中的输出：和输入相同，可以利用encodeURIComponent
+- JS 中的输出：利用 JavaScriptEncode，和 HTMLEncode 不同，用 \ 对特殊字符进行转义
+- CSS 中的输出：具体参考https://juejin.cn/post/6844903684900388871，主要有 2 点
+  - 控制用户变量仅在 style 标签范围内
+  - 不要引用未知的 CSS 文件
+- URL 中的输出：使用 URLEncode 即可
+
+### 其他 XSS 防御
+
+1. JSONP XSS：
+  1. 严格要求 Content-Type 为 application/json，千万不能写成 html
+  2. callback 做长度限制
+  3. 检测 callback 里的字符
+  4. 过滤 callback 以及 json 数据输出，即转义
+  5. 其他比较 trick 的技巧：如在 Callback 输出之前加入其他字符(如：/**/、回车换行)这样不影响 JSON 文件加载，又能一定程度预防其他文件格式的输出。还比如 Gmail 早起使用 AJAX 的方式获取 JSON ，听过在输出 JSON 之前加入 while(1) ;这样的代码来防止 JS 远程调用。
+2. Web 安全头支持：浏览器自带的防范能力，包括
+  1. CSP
+  2. X-Download-Options: noopen
+  3. X-Content-Type-Options: nosniff
+  4. X-XSS-Protection（IE 提供的一些 XSS 防范头，默认开启）
+3. Http-only Cookie：该属性最早由微软提出，现已成为各大浏览器的标准，通过该属性禁止 JS 能访问处理 cookie。该属性并非阻止 XSS 攻击，而是能阻止 XSS 攻击后的 cookie 劫持攻击
+4. 添加验证码机制
+5. 白名单列表
+
+</Success>
+
+<Warning title="参考连接">
+
+1. [前端 | XSS 的攻击手段及其防御](https://zhuanlan.zhihu.com/p/61773197)
+
+</Warning>
