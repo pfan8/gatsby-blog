@@ -11,8 +11,8 @@ excerpt: 网络安全, XSS, JS, CSS
 
 <Info title="前言">
 
- 好久没更新博客了，因为 6 月 ~ 8 月都在跳槽准备，如今也算是如愿以偿进入大厂（拿了 5 个大厂 offer，最后选择了蚂蚁 =w=），
- 入职了一周，工作生活也算进入正轨，但是还是应该保持着对技术的热爱，所以我会继续努力更新博客的，同时因为不需要有太强的目的性，总算可以任意研究自己感兴趣的技术点咯~希望日后能多
+好久没更新博客了，因为 6 月 ~ 8 月都在跳槽准备，如今也算是如愿以偿进入大厂（拿了 5 个大厂 offer，最后选择了蚂蚁 =w=），
+入职了一周，工作生活也算进入正轨，但是还是应该保持着对技术的热爱，所以我会继续努力更新博客的，同时因为不需要有太强的目的性，总算可以任意研究自己感兴趣的技术点咯~希望日后能多
 
 </Info>
 
@@ -40,12 +40,14 @@ XSS 是指 Cross Site Scripting，也就是跨站脚本攻击，是前端领域�
 通过恶意脚本修改页面的 DOM 结构，制造攻击
 在浏览器端完成，不需要服务端的交互
 
-------
+---
+
 类型 | 存储区 | 插入点
-Reflected XSS | 	URL | 	HTML
-Stored XSS |	后端数据库 |	HTML
-DOM XSS |	后端数据库/前端存储/URL |	前端 JavaScript
-------
+Reflected XSS | URL | HTML
+Stored XSS | 后端数据库 | HTML
+DOM XSS | 后端数据库/前端存储/URL | 前端 JavaScript
+
+---
 
 关于 XSS 的清单（cheat sheet）：https://portswigger.net/web-security/cross-site-scripting/cheat-sheet
 
@@ -54,6 +56,7 @@ DOM XSS |	后端数据库/前端存储/URL |	前端 JavaScript
 <Success title="XSS 预防">
 
 通过前面的介绍可以得知，XSS 攻击有两大要素：
+
 1. 攻击者提交恶意代码。
 2. 浏览器执行恶意代码。
 
@@ -62,6 +65,7 @@ DOM XSS |	后端数据库/前端存储/URL |	前端 JavaScript
 ### 输入
 
 输入指客户端请求参数，具体包括：
+
 - 用户输入
 - URL 参数
 - POST 参数
@@ -83,7 +87,7 @@ DOM XSS |	后端数据库/前端存储/URL |	前端 JavaScript
 除此之外，富文本的输入需要额外注意：
 
 1. 首先例行进行输入检查，保证用户输入的是完整的 HTML 代码，而不是有拼接的代码
-2. 通过htmlParser解析出 HTML 代码的标签、属性、事件
+2. 通过 htmlParser 解析出 HTML 代码的标签、属性、事件
 3. **富文本的事件肯定要被禁止**，因为富文本并不需要事件这种东西，另外一些危险的标签也需要禁止，例如：`<iframe>，<script>，<base>，<form>`等
 4. 利用白名单机制，只允许安全的标签嵌入，例如：`<a>，<img>，div`等，白名单不仅仅适用于标签，也适用于属性
 5. 过滤用户 CSS，检查是否有危险代码
@@ -92,7 +96,7 @@ DOM XSS |	后端数据库/前端存储/URL |	前端 JavaScript
 
 输出的内容同样有需要转义的部分，包括：
 
-- HTML 中的输出：和输入相同，可以利用encodeURIComponent
+- HTML 中的输出：和输入相同，可以利用 encodeURIComponent
 - JS 中的输出：利用 JavaScriptEncode，和 HTMLEncode 不同，用 \ 对特殊字符进行转义
 - CSS 中的输出：具体参考https://juejin.cn/post/6844903684900388871，主要有 2 点
   - 控制用户变量仅在 style 标签范围内
@@ -102,19 +106,19 @@ DOM XSS |	后端数据库/前端存储/URL |	前端 JavaScript
 ### 其他 XSS 防御
 
 1. JSONP XSS：
-  1. 严格要求 Content-Type 为 application/json，千万不能写成 html
-  2. callback 做长度限制
-  3. 检测 callback 里的字符
-  4. 过滤 callback 以及 json 数据输出，即转义
-  5. 其他比较 trick 的技巧：如在 Callback 输出之前加入其他字符(如：/**/、回车换行)这样不影响 JSON 文件加载，又能一定程度预防其他文件格式的输出。还比如 Gmail 早起使用 AJAX 的方式获取 JSON ，听过在输出 JSON 之前加入 while(1) ;这样的代码来防止 JS 远程调用。
-2. Web 安全头支持：浏览器自带的防范能力，包括
-  1. CSP
-  2. X-Download-Options: noopen
-  3. X-Content-Type-Options: nosniff
-  4. X-XSS-Protection（IE 提供的一些 XSS 防范头，默认开启）
-3. Http-only Cookie：该属性最早由微软提出，现已成为各大浏览器的标准，通过该属性禁止 JS 能访问处理 cookie。该属性并非阻止 XSS 攻击，而是能阻止 XSS 攻击后的 cookie 劫持攻击
-4. 添加验证码机制
-5. 白名单列表
+1. 严格要求 Content-Type 为 application/json，千万不能写成 html
+1. callback 做长度限制
+1. 检测 callback 里的字符
+1. 过滤 callback 以及 json 数据输出，即转义
+1. 其他比较 trick 的技巧：如在 Callback 输出之前加入其他字符(如：/\*\*/、回车换行)这样不影响 JSON 文件加载，又能一定程度预防其他文件格式的输出。还比如 Gmail 早起使用 AJAX 的方式获取 JSON ，听过在输出 JSON 之前加入 while(1) ;这样的代码来防止 JS 远程调用。
+1. Web 安全头支持：浏览器自带的防范能力，包括
+1. CSP
+1. X-Download-Options: noopen
+1. X-Content-Type-Options: nosniff
+1. X-XSS-Protection（IE 提供的一些 XSS 防范头，默认开启）
+1. Http-only Cookie：该属性最早由微软提出，现已成为各大浏览器的标准，通过该属性禁止 JS 能访问处理 cookie。该属性并非阻止 XSS 攻击，而是能阻止 XSS 攻击后的 cookie 劫持攻击
+1. 添加验证码机制
+1. 白名单列表
 
 </Success>
 

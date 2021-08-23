@@ -22,7 +22,9 @@ require("prismjs/components/prism-bash")
 require("prismjs/components/prism-basic")
 require("prismjs/components/prism-c")
 require("prismjs/components/prism-csharp")
-require("prismjs/components/prism-css")
+// todo: this script will cause error on markup.tag.addAttribute
+// however, downgrade prismjs can not fix the issue, should find out the reason
+// require("prismjs/components/prism-css")
 require("prismjs/components/prism-clike")
 require("prismjs/components/prism-cpp")
 require("prismjs/components/prism-coffeescript")
